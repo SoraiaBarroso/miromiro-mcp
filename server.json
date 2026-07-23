@@ -1,0 +1,33 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "app.miromiro/miromiro",
+  "description": "Extract design from any live website: brand colors, fonts, design tokens, SVGs, images, Lottie, and paste-ready code.",
+  "repository": {
+    "url": "https://github.com/SoraiaBarroso/miromiro-mcp",
+    "source": "github"
+  },
+  "version": "0.2.1",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://miromiro.app/mcp"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "miromiro-mcp",
+      "version": "0.2.1",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "MIROMIRO_API_KEY",
+          "description": "API key from https://miromiro.app/api/dashboard (free tier: 100 credits/month, no card)",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

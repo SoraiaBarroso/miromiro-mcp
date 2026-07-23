@@ -1,0 +1,199 @@
+#!/usr/bin/env node
+/**
+ * MiroMiro MCP server (playbook §3).
+ *
+ * Exposes the MiroMiro design-extraction API as MCP tools so a coding agent
+ * (Cursor / Claude Code / Windsurf) can pull the real design of any URL and
+ * build UI in that style — instead of guessing at colors and fonts.
+ *
+ * Auth: set MIROMIRO_API_KEY in the environment (get one free, no card, at
+ * https://miromiro.app/api/dashboard).
+ *
+ * Run:  MIROMIRO_API_KEY=mm_live_… npx miromiro-mcp
+ * Or wire it into your agent's MCP config (see README).
+ */
+import { Server } from '@modelcontextprotocol/sdk/server/index.js'
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema
+} from '@modelcontextprotocol/sdk/types.js'
+
+const API_BASE = process.env.MIROMIRO_API_BASE || 'https://miromiro.app/api/v1'
+const API_KEY = process.env.MIROMIRO_API_KEY
+
+// Tool → endpoint map. Each tool takes a single `url` (design_tokens also takes
+// an optional `format`). Descriptions are written for the agent, so it knows
+// WHEN to reach for each one.
+// Every tool is a read against the public web: no writes, retry-safe (cached
+// repeats), open-world. Clients use readOnlyHint to label tools as safe.
+const TOOL_ANNOTATIONS = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: true
+}
+
+const TOOLS = [
+  {
+    name: 'extract_code',
+    title: 'Extract section as code',
+    endpoint: 'code',
+    description:
+      "Turn a section of a LIVE website into clean, paste-ready component code. Give it a URL and (optionally) a CSS selector; it resolves the page's real CSS cascade and returns a self-contained component in Tailwind, plain HTML+CSS, React (JSX) or Vue — plus the design tokens that section actually uses. The response also includes `sections`: every extractable section on the page with a human-readable label and a ready selector — when the user wants a specific part (pricing, footer, testimonials), find it there and call again with that selector. USE THIS whenever the user asks to rebuild, clone, port, or copy a section of a real website: it returns the actual code with true colors, fonts, spacing and copy, so you adapt real values instead of guessing from a screenshot. Note: it reads static HTML/CSS and does not execute JavaScript, so a fully client-rendered app may return little.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'The website URL, e.g. stripe.com' },
+        selector: { type: 'string', description: 'CSS selector for the section to extract, e.g. "#hero" or ".pricing-card". Omit to auto-detect the hero.' },
+        framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue'], description: 'The code to generate (default tailwind).' },
+        name: { type: 'string', description: 'Component name for the jsx/vue targets (default ExtractedSection).' }
+      },
+      required: ['url']
+    }
+  },
+  {
+    name: 'extract_brand',
+    title: 'Extract brand identity',
+    endpoint: 'brand',
+    description:
+      "Get a website's curated brand identity: color roles (primary, accent, background, text) read from the site's own CSS variables and logo — each as hex plus a human-readable name like 'Royal Blue' — dark/light theme detection, the brand palette, fonts split by role (primary/mono), logo, social image, the brand's social profiles (X, GitHub, LinkedIn, …), and a 0-1 confidence score for how much the site declared vs how much was inferred. Use this when you only need a site's STYLE (colors/fonts) rather than its code — to build new UI 'in the style of' a reference site. If you need the actual markup of a section, use extract_code instead.",
+    inputSchema: {
+      type: 'object',
+      properties: { url: { type: 'string', description: 'The website URL, e.g. stripe.com' } },
+      required: ['url']
+    }
+  },
+  {
+    name: 'extract_design_tokens',
+    title: 'Extract design tokens',
+    endpoint: 'extract',
+    description:
+      "Extract the full design-token system of a URL: every color, font family, font size, border radius, box shadow, line height and z-index (with usage counts). Pass format='css' for a :root {} block or format='tailwind' for a tailwind.config — paste-ready. Use when you need the complete token set, not just the brand summary.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'The website URL' },
+        format: { type: 'string', enum: ['json', 'css', 'tailwind'], description: 'Output shape (default json)' }
+      },
+      required: ['url']
+    }
+  },
+  {
+    name: 'extract_assets',
+    title: 'Extract images',
+    endpoint: 'images',
+    description:
+      "List every image on a page (img, srcset, picture, CSS background, favicon, og:image) as resolved URLs tagged by source. Use to recover imagery from a site or pull reference assets.",
+    inputSchema: {
+      type: 'object',
+      properties: { url: { type: 'string', description: 'The website URL' } },
+      required: ['url']
+    }
+  },
+  {
+    name: 'extract_svgs',
+    title: 'Extract SVGs',
+    endpoint: 'svg',
+    description:
+      "Extract inline SVGs (as paste-ready code) and SVG file references from a page. Use to grab icons and vector logos.",
+    inputSchema: {
+      type: 'object',
+      properties: { url: { type: 'string', description: 'The website URL' } },
+      required: ['url']
+    }
+  },
+  {
+    name: 'extract_fonts',
+    title: 'Extract fonts',
+    endpoint: 'fonts',
+    description:
+      "Detect the real typography a site loads by resolving its full CSS cascade: every @font-face file with family/weight/style/format, Google Fonts links, preloads, plus a grouped per-family summary (families). Pass fields='families' for just the summary. Use to match typography.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'The website URL' },
+        fields: { type: 'string', description: "Optional comma-separated fields to return (e.g. 'families')" }
+      },
+      required: ['url']
+    }
+  },
+  {
+    name: 'extract_lottie',
+    title: 'Extract Lottie animations',
+    endpoint: 'lottie',
+    description:
+      "Find Lottie/animation JSON files declared on a page. Best-effort from static HTML (runtime-injected animations need the MiroMiro browser extension). Use to recover animations.",
+    inputSchema: {
+      type: 'object',
+      properties: { url: { type: 'string', description: 'The website URL' } },
+      required: ['url']
+    }
+  }
+]
+
+// Query params a tool may forward to the API, beyond `url`. Anything else in the
+// tool arguments is ignored, so a hallucinated param can't reach the endpoint.
+const FORWARDED_PARAMS = ['format', 'selector', 'framework', 'name', 'fields']
+
+async function callApi(endpoint, args) {
+  const q = new URLSearchParams({ url: args.url })
+  for (const p of FORWARDED_PARAMS) {
+    if (args[p] !== undefined && args[p] !== null && args[p] !== '') {
+      q.set(p, String(args[p]))
+    }
+  }
+  const res = await fetch(`${API_BASE}/${endpoint}?${q}`, {
+    headers: { Authorization: `Bearer ${API_KEY}` }
+  })
+  const isJson = (res.headers.get('content-type') || '').includes('application/json')
+  const body = isJson ? await res.json() : await res.text()
+  if (!res.ok) {
+    const msg = isJson ? (body.statusMessage || body.message || JSON.stringify(body)) : body
+    throw new Error(`MiroMiro API ${res.status}: ${msg}`)
+  }
+  // Compact JSON: pretty-printing spends ~30% more model context on whitespace.
+  return isJson ? JSON.stringify(body) : body
+}
+
+const server = new Server(
+  { name: 'miromiro', version: '0.2.1' },
+  { capabilities: { tools: {} } }
+)
+
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  tools: TOOLS.map(({ name, title, description, inputSchema }) => ({
+    name,
+    title,
+    description,
+    inputSchema,
+    annotations: { title, ...TOOL_ANNOTATIONS }
+  }))
+}))
+
+server.setRequestHandler(CallToolRequestSchema, async (req) => {
+  if (!API_KEY) {
+    return {
+      isError: true,
+      content: [{ type: 'text', text: 'MIROMIRO_API_KEY is not set. Get a free key at https://miromiro.app/api/dashboard and set it in your MCP config env.' }]
+    }
+  }
+  const tool = TOOLS.find(t => t.name === req.params.name)
+  if (!tool) {
+    return { isError: true, content: [{ type: 'text', text: `Unknown tool: ${req.params.name}` }] }
+  }
+  const args = req.params.arguments || {}
+  if (!args.url) {
+    return { isError: true, content: [{ type: 'text', text: 'The "url" argument is required.' }] }
+  }
+  try {
+    const out = await callApi(tool.endpoint, args)
+    return { content: [{ type: 'text', text: out }] }
+  } catch (err) {
+    return { isError: true, content: [{ type: 'text', text: String(err.message || err) }] }
+  }
+})
+
+const transport = new StdioServerTransport()
+await server.connect(transport)
+console.error('miromiro-mcp running on stdio')

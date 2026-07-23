@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
   "name": "app.miromiro/miromiro",
-  "description": "Extract design from any live website: brand colors, fonts, design tokens, SVGs, images, Lottie, and paste-ready code.",
+  "description": "Turn any live website into brand colors, fonts, design tokens, SVGs, Lottie and paste-ready code.",
   "repository": {
     "url": "https://github.com/SoraiaBarroso/miromiro-mcp",
     "source": "github"

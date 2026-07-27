@@ -7,6 +7,20 @@ MCP server for the [MiroMiro](https://miromiro.app/api) design-extraction API. G
 
 Works with Claude (web, desktop, Claude Code), ChatGPT, Cursor, Windsurf, Codex, and any MCP client.
 
+## Claude Code plugin
+
+Install as a plugin to get the tools plus three skills that teach Claude when to reach for
+each one (`clone-section`, `match-brand`, `extract-assets`):
+
+```bash
+claude plugin marketplace add anthropics/claude-plugins-community
+claude plugin install miromiro@claude-community
+```
+
+The plugin uses the remote server, so there is nothing to install and no key to paste - on
+first use it opens a one-click MiroMiro sign-in that links a free account (100 credits/month,
+no card).
+
 ## Quick start: remote server (nothing to install)
 
 A hosted server lives at:
@@ -56,6 +70,8 @@ claude mcp add miromiro -s user \
 | `extract_brand` | Named color roles (primary/accent/background/text), palette, fonts split by role, logo, social profiles, and a 0-1 confidence score | 15 |
 | `extract_design_tokens` | Full token system with usage counts; `format: css` or `tailwind` for paste-ready output | 10 |
 | `extract_fonts` | Every font file and family the site loads, with weights, formats, and file URLs | 5 |
+| `extract_videos` | Video files, `og:video`, and player embeds (YouTube, Vimeo, Wistia, Loom), tagged by source | 1 |
+| `extract_audio` | Audio files, `og:audio`, and podcast enclosures, tagged by source | 1 |
 | `extract_lottie` | Lottie animation JSON files declared in the page | 3 |
 | `extract_svgs` | Inline SVG code (sanitized, paste-ready) plus external SVG file URLs | 1 |
 | `extract_assets` | Every image URL on a page, tagged by source, with alt text | 1 |
@@ -69,7 +85,9 @@ Remote results are trimmed by default so a big page cannot flood the chat contex
 - `limit` (up to 200) - raise the item cap: "give me 80 SVGs, not 20"
 - `full_output: true` - complete long strings, like entire inline SVG markup
 
-The REST API and this local npm server always return everything untrimmed.
+The REST API and this local npm server always return everything untrimmed, so `limit` and
+`full_output` apply to the remote server only. Every tool on both servers accepts
+`render: true`.
 
 ## Examples
 
@@ -87,7 +105,7 @@ The agent calls `extract_fonts` and returns every family with its font file URLs
 
 ## Notes
 
-- The API reads static HTML and resolves the full CSS cascade. It does not execute JavaScript, so a fully client-rendered app may return little for images and Lottie (tokens, fonts, brand, and code come from CSS and are unaffected).
+- The API reads static HTML and resolves the full CSS cascade by default, so a fully client-rendered app may return little for images, video, audio and Lottie (tokens, fonts, brand, and code come from CSS and are unaffected). Pass `render: true` on any remote-server tool to run the page in a real browser first so its JavaScript executes (+5 credits).
 - Respect the sites you extract from: check their terms before reusing assets commercially.
 
 ## Links

@@ -6,7 +6,7 @@
     "url": "https://github.com/SoraiaBarroso/miromiro-mcp",
     "source": "github"
   },
-  "version": "0.2.1",
+  "version": "0.3.0",
   "remotes": [
     {
       "type": "streamable-http",
@@ -18,7 +18,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "miromiro-mcp",
-      "version": "0.2.1",
+      "version": "0.3.0",
       "transport": { "type": "stdio" },
       "environmentVariables": [
         {

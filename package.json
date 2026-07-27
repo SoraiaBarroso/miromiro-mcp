@@ -1,6 +1,6 @@
 {
   "name": "miromiro-mcp",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "MCP server for the MiroMiro design-extraction API — give your coding agent the real code, design tokens, assets, SVGs, fonts, and Lottie of any website.",
   "mcpName": "app.miromiro/miromiro",
   "type": "module",

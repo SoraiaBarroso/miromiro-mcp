@@ -34,20 +34,29 @@ const TOOL_ANNOTATIONS = {
   openWorldHint: true
 }
 
+// Shared input arg: every tool accepts render=true to execute the page's
+// JavaScript in a real (rented) browser before extraction - the fix for
+// client-rendered React/Next/SPA sites that return little statically.
+const RENDER_ARG = {
+  type: 'boolean',
+  description: 'Run the page in a real browser first so its JavaScript executes - use for client-rendered (React/Next/SPA) sites, or when a normal call came back thin. Slower, and adds 5 credits to the call.'
+}
+
 const TOOLS = [
   {
     name: 'extract_code',
     title: 'Extract section as code',
     endpoint: 'code',
     description:
-      "Turn a section of a LIVE website into clean, paste-ready component code. Give it a URL and (optionally) a CSS selector; it resolves the page's real CSS cascade and returns a self-contained component in Tailwind, plain HTML+CSS, React (JSX) or Vue — plus the design tokens that section actually uses. The response also includes `sections`: every extractable section on the page with a human-readable label and a ready selector — when the user wants a specific part (pricing, footer, testimonials), find it there and call again with that selector. USE THIS whenever the user asks to rebuild, clone, port, or copy a section of a real website: it returns the actual code with true colors, fonts, spacing and copy, so you adapt real values instead of guessing from a screenshot. Note: it reads static HTML/CSS and does not execute JavaScript, so a fully client-rendered app may return little.",
+      "Turn a section of a LIVE website into clean, paste-ready component code. Give it a URL and (optionally) a CSS selector; it resolves the page's real CSS cascade and returns a self-contained component in Tailwind, plain HTML+CSS, React (JSX) or Vue — plus the design tokens that section actually uses. The response also includes `sections`: every extractable section on the page with a human-readable label and a ready selector — when the user wants a specific part (pricing, footer, testimonials), find it there and call again with that selector. USE THIS whenever the user asks to rebuild, clone, port, or copy a section of a real website: it returns the actual code with true colors, fonts, spacing and copy, so you adapt real values instead of guessing from a screenshot. Note: it reads static HTML/CSS by default - for a fully client-rendered app that returns little, call again with render=true to execute the page's JavaScript in a real browser first (+5 credits).",
     inputSchema: {
       type: 'object',
       properties: {
         url: { type: 'string', description: 'The website URL, e.g. stripe.com' },
         selector: { type: 'string', description: 'CSS selector for the section to extract, e.g. "#hero" or ".pricing-card". Omit to auto-detect the hero.' },
         framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue'], description: 'The code to generate (default tailwind).' },
-        name: { type: 'string', description: 'Component name for the jsx/vue targets (default ExtractedSection).' }
+        name: { type: 'string', description: 'Component name for the jsx/vue targets (default ExtractedSection).' },
+        render: RENDER_ARG
       },
       required: ['url']
     }
@@ -60,7 +69,7 @@ const TOOLS = [
       "Get a website's curated brand identity: color roles (primary, accent, background, text) read from the site's own CSS variables and logo — each as hex plus a human-readable name like 'Royal Blue' — dark/light theme detection, the brand palette, fonts split by role (primary/mono), logo, social image, the brand's social profiles (X, GitHub, LinkedIn, …), and a 0-1 confidence score for how much the site declared vs how much was inferred. Use this when you only need a site's STYLE (colors/fonts) rather than its code — to build new UI 'in the style of' a reference site. If you need the actual markup of a section, use extract_code instead.",
     inputSchema: {
       type: 'object',
-      properties: { url: { type: 'string', description: 'The website URL, e.g. stripe.com' } },
+      properties: { url: { type: 'string', description: 'The website URL, e.g. stripe.com' }, render: RENDER_ARG },
       required: ['url']
     }
   },
@@ -74,7 +83,8 @@ const TOOLS = [
       type: 'object',
       properties: {
         url: { type: 'string', description: 'The website URL' },
-        format: { type: 'string', enum: ['json', 'css', 'tailwind'], description: 'Output shape (default json)' }
+        format: { type: 'string', enum: ['json', 'css', 'tailwind'], description: 'Output shape (default json)' },
+        render: RENDER_ARG
       },
       required: ['url']
     }
@@ -84,10 +94,10 @@ const TOOLS = [
     title: 'Extract images',
     endpoint: 'images',
     description:
-      "List every image on a page (img, srcset, picture, CSS background, favicon, og:image) as resolved URLs tagged by source. Use to recover imagery from a site or pull reference assets.",
+      "List every image on a page (img, srcset, picture, CSS background, favicon, og:image) as resolved URLs tagged by source. Use to recover imagery from a site or pull reference assets. Best-effort from static HTML: if images are mounted by JavaScript, call again with render=true (+5 credits).",
     inputSchema: {
       type: 'object',
-      properties: { url: { type: 'string', description: 'The website URL' } },
+      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG },
       required: ['url']
     }
   },
@@ -96,10 +106,10 @@ const TOOLS = [
     title: 'Extract SVGs',
     endpoint: 'svg',
     description:
-      "Extract inline SVGs (as paste-ready code) and SVG file references from a page. Use to grab icons and vector logos.",
+      "Extract inline SVGs (as paste-ready code) and SVG file references from a page. Use to grab icons and vector logos. Best-effort from static HTML: if icons are mounted by JavaScript, call again with render=true (+5 credits).",
     inputSchema: {
       type: 'object',
-      properties: { url: { type: 'string', description: 'The website URL' } },
+      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG },
       required: ['url']
     }
   },
@@ -113,7 +123,8 @@ const TOOLS = [
       type: 'object',
       properties: {
         url: { type: 'string', description: 'The website URL' },
-        fields: { type: 'string', description: "Optional comma-separated fields to return (e.g. 'families')" }
+        fields: { type: 'string', description: "Optional comma-separated fields to return (e.g. 'families')" },
+        render: RENDER_ARG
       },
       required: ['url']
     }
@@ -123,10 +134,34 @@ const TOOLS = [
     title: 'Extract Lottie animations',
     endpoint: 'lottie',
     description:
-      "Find Lottie/animation JSON files declared on a page. Best-effort from static HTML (runtime-injected animations need the MiroMiro browser extension). Use to recover animations.",
+      "Find Lottie/animation JSON files declared on a page. Best-effort from static HTML - most Lotties are runtime-injected, so pass render=true to execute the page JS first and catch those too (+5 credits). Use to recover animations.",
     inputSchema: {
       type: 'object',
-      properties: { url: { type: 'string', description: 'The website URL' } },
+      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG },
+      required: ['url']
+    }
+  },
+  {
+    name: 'extract_videos',
+    title: 'Extract videos',
+    endpoint: 'videos',
+    description:
+      'List every video a page declares: <video>/<source> files, og:video, player embeds (YouTube, Vimeo, Wistia, Loom) and direct video-file links - each tagged by source, with a poster image when declared. Note `source: "embed"` is a player page, not a downloadable file. Best-effort from static HTML: most sites mount their player with JavaScript, so if the result is thin or empty, call again with render=true to execute the page JS first (+5 credits).',
+    inputSchema: {
+      type: 'object',
+      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG },
+      required: ['url']
+    }
+  },
+  {
+    name: 'extract_audio',
+    title: 'Extract audio',
+    endpoint: 'audio',
+    description:
+      'List every audio file a page declares: <audio>/<source> files, og:audio, and direct audio-file links such as podcast enclosures and download buttons - each tagged by source. Best-effort from static HTML: if a JavaScript player mounts the audio at runtime, call again with render=true (+5 credits).',
+    inputSchema: {
+      type: 'object',
+      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG },
       required: ['url']
     }
   }
@@ -134,7 +169,7 @@ const TOOLS = [
 
 // Query params a tool may forward to the API, beyond `url`. Anything else in the
 // tool arguments is ignored, so a hallucinated param can't reach the endpoint.
-const FORWARDED_PARAMS = ['format', 'selector', 'framework', 'name', 'fields']
+const FORWARDED_PARAMS = ['format', 'selector', 'framework', 'name', 'fields', 'render']
 
 async function callApi(endpoint, args) {
   const q = new URLSearchParams({ url: args.url })
@@ -157,7 +192,7 @@ async function callApi(endpoint, args) {
 }
 
 const server = new Server(
-  { name: 'miromiro', version: '0.2.1' },
+  { name: 'miromiro', version: '0.3.0' },
   { capabilities: { tools: {} } }
 )
 

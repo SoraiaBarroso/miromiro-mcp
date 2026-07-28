@@ -24,18 +24,27 @@ real one.
 Match the user's project, don't default blindly:
 
 - `tailwind` (default) — Tailwind utility classes in the markup
-- `jsx` — a React component; pass `name` to set the component name
-- `vue` — a single-file component; `name` applies here too
+- `jsx` — a React component; pass `name` to set the component name. Repeated structures
+  (tiers, cards, list items) come back as one template plus a `const items = […]` array
+  rendered with `.map()` — use the data array, don't re-expand it.
+- `vue` — a single-file component with `<script setup>`; `name` applies here too, and
+  repeated structures collapse into a `v-for` the same way
 - `html` — plain HTML plus a companion `css` string
+
+For every framework, the `css` field may also carry the section's `@keyframes` — add
+those to the project's global stylesheet or the animations silently do nothing.
 
 If the repo you are working in already uses one of these, use it without asking.
 
 ## When a result comes back thin
 
-The API reads static HTML and CSS by default. A fully client-rendered app (React, Next,
-most SPAs) may return very little. When that happens, call again with `render: true` — it
-runs the page in a real browser so its JavaScript executes first. It is slower and costs
-5 extra credits, so treat it as the retry, not the default.
+The API reads static HTML and CSS by default, and the response tells you how it went:
+`summary.styledCoverage` (0-100) is the percentage of elements the CSS cascade resolved
+styles for, and when the page is client-rendered or styles itself at runtime the response
+includes a `hint` field saying what to do. When you see the `hint` (or coverage is low),
+call again with `render: true` — it runs the page in a real browser so its JavaScript
+executes first. It is slower and costs 5 extra credits, so treat it as the retry, not
+the default.
 
 ## After you get the code
 

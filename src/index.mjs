@@ -42,6 +42,18 @@ const RENDER_ARG = {
   description: 'Run the page in a real browser first so its JavaScript executes - use for client-rendered (React/Next/SPA) sites, or when a normal call came back thin. Slower, and adds 5 credits to the call.'
 }
 
+// Shared input arg: skip the 24h cache for this one call (charged normally).
+const FRESH_ARG = {
+  type: 'boolean',
+  description: 'Skip the 24-hour cache and re-extract the live page - use when the site just changed and a cached result would be stale. Charged normally; the fresh result replaces the cached copy.'
+}
+
+// Shared input arg: a screenshot URL alongside the data (requires render=true).
+const SCREENSHOT_ARG = {
+  type: ['boolean', 'string'],
+  description: "Requires render=true. Adds a screenshot field to the result: a public URL of a capture of the page (live 7 days), taken by the same browser that rendered it. Pass true for the 1440x900 viewport or 'full' for the entire page height. No extra credits beyond the render surcharge. Useful for showing the user what the extracted site looks like."
+}
+
 const TOOLS = [
   {
     name: 'extract_code',
@@ -56,7 +68,7 @@ const TOOLS = [
         selector: { type: 'string', description: 'CSS selector for the section to extract, e.g. "#hero" or ".pricing-card". Omit to auto-detect the hero.' },
         framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue'], description: 'The code to generate (default tailwind).' },
         name: { type: 'string', description: 'Component name for the jsx/vue targets (default ExtractedSection).' },
-        render: RENDER_ARG
+        render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG
       },
       required: ['url']
     }
@@ -69,7 +81,7 @@ const TOOLS = [
       "Get a website's curated brand identity: color roles (primary, accent, background, text) read from the site's own CSS variables and logo — each as hex plus a human-readable name like 'Royal Blue' — dark/light theme detection, the brand palette, fonts split by role (primary/mono), logo, social image, the brand's social profiles (X, GitHub, LinkedIn, …), and a 0-1 confidence score for how much the site declared vs how much was inferred. Use this when you only need a site's STYLE (colors/fonts) rather than its code — to build new UI 'in the style of' a reference site. If you need the actual markup of a section, use extract_code instead.",
     inputSchema: {
       type: 'object',
-      properties: { url: { type: 'string', description: 'The website URL, e.g. stripe.com' }, render: RENDER_ARG },
+      properties: { url: { type: 'string', description: 'The website URL, e.g. stripe.com' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
       required: ['url']
     }
   },
@@ -78,13 +90,13 @@ const TOOLS = [
     title: 'Extract design tokens',
     endpoint: 'extract',
     description:
-      "Extract the full design-token system of a URL: every color, font family, font size, border radius, box shadow, line height and z-index (with usage counts). Pass format='css' for a :root {} block or format='tailwind' for a tailwind.config — paste-ready. Use when you need the complete token set, not just the brand summary.",
+      "Extract the full design-token system of a URL: every color, font family, font size, border radius, box shadow, line height and z-index (with usage counts). Pass format='css' for a :root {} block, format='tailwind' for a tailwind.config, or format='dtcg' for a standalone W3C Design Tokens file (drops into Style Dictionary / Figma variables pipelines). Use when you need the complete token set, not just the brand summary.",
     inputSchema: {
       type: 'object',
       properties: {
         url: { type: 'string', description: 'The website URL' },
-        format: { type: 'string', enum: ['json', 'css', 'tailwind'], description: 'Output shape (default json)' },
-        render: RENDER_ARG
+        format: { type: 'string', enum: ['json', 'css', 'tailwind', 'dtcg'], description: "Output shape (default json). 'dtcg' returns a W3C Design Tokens file." },
+        render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG
       },
       required: ['url']
     }
@@ -97,7 +109,7 @@ const TOOLS = [
       "List every image on a page (img, srcset, picture, CSS background, favicon, og:image) as resolved URLs tagged by source. Use to recover imagery from a site or pull reference assets. Best-effort from static HTML: if images are mounted by JavaScript, call again with render=true (+5 credits).",
     inputSchema: {
       type: 'object',
-      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG },
+      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
       required: ['url']
     }
   },
@@ -109,7 +121,7 @@ const TOOLS = [
       "Extract inline SVGs (as paste-ready code) and SVG file references from a page. Use to grab icons and vector logos. Best-effort from static HTML: if icons are mounted by JavaScript, call again with render=true (+5 credits).",
     inputSchema: {
       type: 'object',
-      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG },
+      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
       required: ['url']
     }
   },
@@ -124,7 +136,7 @@ const TOOLS = [
       properties: {
         url: { type: 'string', description: 'The website URL' },
         fields: { type: 'string', description: "Optional comma-separated fields to return (e.g. 'families')" },
-        render: RENDER_ARG
+        render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG
       },
       required: ['url']
     }
@@ -137,7 +149,7 @@ const TOOLS = [
       "Find Lottie/animation JSON files declared on a page. Best-effort from static HTML - most Lotties are runtime-injected, so pass render=true to execute the page JS first and catch those too (+5 credits). Use to recover animations.",
     inputSchema: {
       type: 'object',
-      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG },
+      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
       required: ['url']
     }
   },
@@ -149,7 +161,7 @@ const TOOLS = [
       'List every video a page declares: <video>/<source> files, og:video, player embeds (YouTube, Vimeo, Wistia, Loom) and direct video-file links - each tagged by source, with a poster image when declared. Note `source: "embed"` is a player page, not a downloadable file. Best-effort from static HTML: most sites mount their player with JavaScript, so if the result is thin or empty, call again with render=true to execute the page JS first (+5 credits).',
     inputSchema: {
       type: 'object',
-      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG },
+      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
       required: ['url']
     }
   },
@@ -161,7 +173,7 @@ const TOOLS = [
       'List every audio file a page declares: <audio>/<source> files, og:audio, and direct audio-file links such as podcast enclosures and download buttons - each tagged by source. Best-effort from static HTML: if a JavaScript player mounts the audio at runtime, call again with render=true (+5 credits).',
     inputSchema: {
       type: 'object',
-      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG },
+      properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
       required: ['url']
     }
   }
@@ -169,7 +181,7 @@ const TOOLS = [
 
 // Query params a tool may forward to the API, beyond `url`. Anything else in the
 // tool arguments is ignored, so a hallucinated param can't reach the endpoint.
-const FORWARDED_PARAMS = ['format', 'selector', 'framework', 'name', 'fields', 'render']
+const FORWARDED_PARAMS = ['format', 'selector', 'framework', 'name', 'fields', 'render', 'fresh', 'screenshot']
 
 async function callApi(endpoint, args) {
   const q = new URLSearchParams({ url: args.url })
@@ -192,7 +204,7 @@ async function callApi(endpoint, args) {
 }
 
 const server = new Server(
-  { name: 'miromiro', version: '0.3.0' },
+  { name: 'miromiro', version: '0.4.0' },
   { capabilities: { tools: {} } }
 )
 

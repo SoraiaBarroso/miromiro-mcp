@@ -68,7 +68,7 @@ claude mcp add miromiro -s user \
 |---|---|---|
 | `extract_code` | A section of a live page as a paste-ready component (Tailwind, HTML+CSS, JSX or Vue) plus the tokens it uses - start here to rebuild real UI | 25 |
 | `extract_brand` | Named color roles (primary/accent/background/text), palette, fonts split by role, logo, social profiles, and a 0-1 confidence score | 15 |
-| `extract_design_tokens` | Full token system with usage counts; `format: css` or `tailwind` for paste-ready output | 10 |
+| `extract_design_tokens` | Full token system with usage counts; `format: css` or `tailwind` for paste-ready output, `dtcg` for a W3C Design Tokens file (Style Dictionary / Figma variables) | 10 |
 | `extract_fonts` | Every font file and family the site loads, with weights, formats, and file URLs | 5 |
 | `extract_videos` | Video files, `og:video`, and player embeds (YouTube, Vimeo, Wistia, Loom), tagged by source | 1 |
 | `extract_audio` | Audio files, `og:audio`, and podcast enclosures, tagged by source | 1 |
@@ -87,7 +87,10 @@ Remote results are trimmed by default so a big page cannot flood the chat contex
 
 The REST API and this local npm server always return everything untrimmed, so `limit` and
 `full_output` apply to the remote server only. Every tool on both servers accepts
-`render: true`.
+`render: true`, plus two more shared arguments:
+
+- `fresh: true` - skip the 24-hour cache and re-extract the live page (charged normally); use when the site just changed
+- `screenshot: true` (requires `render: true`) - the result gains a `screenshot` field: a public URL of a 1440x900 capture of the page, live for 7 days, at no extra credits - show it to the user to verify an extraction. Pass `'full'` instead of `true` for the entire page height.
 
 ## Examples
 

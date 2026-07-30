@@ -18,7 +18,7 @@ claude plugin install miromiro@claude-community
 ```
 
 The plugin uses the remote server, so there is nothing to install and no key to paste - on
-first use it opens a one-click MiroMiro sign-in that links a free account (100 credits/month,
+first use it opens a one-click MiroMiro sign-in that links a free account (300 credits/month,
 no card).
 
 ## Quick start: remote server (nothing to install)
@@ -29,7 +29,7 @@ A hosted server lives at:
 https://miromiro.app/mcp
 ```
 
-Paste that URL into any client that accepts a remote MCP server. On first use it opens a one-click MiroMiro sign-in that links a free account (100 credits/month, no card).
+Paste that URL into any client that accepts a remote MCP server. On first use it opens a one-click MiroMiro sign-in that links a free account (300 credits/month, no card).
 
 - **Claude (web or desktop):** Settings → Connectors → Add custom connector → paste the URL. Or use the [one-click install](https://miromiro.app/api/mcp).
 - **ChatGPT:** Settings → Security and login → enable Developer mode, then add the URL as a connector (authentication: OAuth).

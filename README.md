@@ -98,6 +98,12 @@ The REST API and this local npm server always return everything untrimmed, so `l
 
 The agent calls `extract_code` with the URL, gets the section's real markup, colors, fonts, and spacing, and adapts actual values instead of guessing.
 
+Extraction returns a page's light styles by default, so a site you know as dark comes back light unless you ask otherwise:
+
+> "Rebuild linear.app's pricing card in its dark theme"
+
+The agent passes `theme: "dark"` and the page's `prefers-color-scheme: dark` rules and custom properties become the component itself. Every result also carries a `theme` field saying which one you actually got. Sites that switch themes with a JavaScript class toggle cannot be selected this way - you get the page default plus a hint saying so.
+
 > "Build a dashboard in the style of linear.app"
 
 The agent calls `extract_brand` and `extract_design_tokens`, gets Linear's real colors, fonts, and spacing scale, and builds to match.

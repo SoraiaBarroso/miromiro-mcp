@@ -60,7 +60,7 @@ const TOOLS = [
     title: 'Extract section as code',
     endpoint: 'code',
     description:
-      "Turn a section of a LIVE website into clean, paste-ready component code. Give it a URL and (optionally) a CSS selector; it resolves the page's real CSS cascade and returns a self-contained component in Tailwind, plain HTML+CSS, React (JSX) or Vue — plus the design tokens that section actually uses. The response also includes `sections`: every extractable section on the page with a human-readable label and a ready selector — when the user wants a specific part (pricing, footer, testimonials), find it there and call again with that selector. For jsx/vue, repeated structures (pricing tiers, testimonial cards, feature lists) are collapsed into a data array rendered with .map()/v-for - one template plus the data, like a human would write it. The section's ::before/::after decorations come back as real elements, dark-mode styles as dark: variants, and its @keyframes ship in the css field. USE THIS whenever the user asks to rebuild, clone, port, or copy a section of a real website: it returns the actual code with true colors, fonts, spacing and copy, so you adapt real values instead of guessing from a screenshot. Note: it reads static HTML/CSS by default - summary.styledCoverage (0-100) tells you how much styling resolved, and a client-rendered app that returns little includes a hint field saying to call again with render=true (+5 credits). Follow it.",
+      "Turn a section of a LIVE website into clean, paste-ready component code. Give it a URL and (optionally) a CSS selector; it resolves the page's real CSS cascade and returns a self-contained component in Tailwind, plain HTML+CSS, React (JSX) or Vue — plus the design tokens that section actually uses. The response also includes `sections`: every extractable section on the page with a human-readable label and a ready selector — when the user wants a specific part (pricing, footer, testimonials), find it there and call again with that selector. For jsx/vue, repeated structures (pricing tiers, testimonial cards, feature lists) are collapsed into a data array rendered with .map()/v-for - one template plus the data, like a human would write it. The section's ::before/::after decorations come back as real elements, dark-mode styles as dark: variants, and its @keyframes ship in the css field. The `theme` field (light | dark) tells you which theme the returned code actually is - measured from the page, never echoed back from your request. A site that expresses its themes through a prefers-color-scheme media query returns its LIGHT branch by default, so pass theme='dark' when the user is looking at that site in dark mode or asks for its dark version; sites that scope themes to a root attribute or class are read correctly either way. Say which theme you returned. USE THIS whenever the user asks to rebuild, clone, port, or copy a section of a real website: it returns the actual code with true colors, fonts, spacing and copy, so you adapt real values instead of guessing from a screenshot. Note: it reads static HTML/CSS by default - summary.styledCoverage (0-100) tells you how much styling resolved, and a client-rendered app that returns little includes a hint field saying to call again with render=true (+5 credits). Follow it.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -68,6 +68,7 @@ const TOOLS = [
         selector: { type: 'string', description: 'CSS selector for the section to extract, e.g. "#hero" or ".pricing-card". Omit to auto-detect the hero.' },
         framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue'], description: 'The code to generate (default tailwind).' },
         name: { type: 'string', description: 'Component name for the jsx target (default ExtractedSection). Ignored by tailwind, html and vue. Renaming never re-runs the extraction - it costs 0 credits on a cached section.' },
+        theme: { type: 'string', enum: ['light', 'dark'], description: "Which colour scheme to extract (default light). Pass 'dark' when the user is looking at the site in dark mode or asks for the dark version: the page's prefers-color-scheme: dark rules and custom properties become the component itself instead of riding along as dark: variants. Works whether the site expresses its themes as @media (prefers-color-scheme) or as a root attribute/class the CSS is scoped to ([data-theme=dark], html.dark). Sites that switch themes purely in JavaScript cannot be selected this way - you get the page default plus a hint saying so. No extra credits." },
         render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG
       },
       required: ['url']
@@ -90,7 +91,7 @@ const TOOLS = [
     title: 'Extract design tokens',
     endpoint: 'extract',
     description:
-      "Extract the full design-token system of a URL: every color, font family, font size, border radius, box shadow, line height and z-index (with usage counts). Pass format='css' for a :root {} block, format='tailwind' for a tailwind.config, or format='dtcg' for a standalone W3C Design Tokens file (drops into Style Dictionary / Figma variables pipelines). Use when you need the complete token set, not just the brand summary.",
+      "Extract the full design-token system of a URL: every color, font family, font size, border radius, box shadow, line height and z-index (with usage counts). Pass format='css' for a :root {} block, format='tailwind' for a tailwind.config, or format='dtcg' for a standalone W3C Design Tokens file (drops into Style Dictionary / Figma variables pipelines). Use when you need the complete token set, not just the brand summary. Returns VALUES and how often each is used - not layout, spacing composition or shadow stacks, and not which value belongs to which element: if the user asked you to rebuild or clone a section, use extract_code instead, which returns the real markup with the values already in place. Counts are tallied over the whole stylesheet, so a site shipping both light and dark themes returns the union of the two (see colorSchemes) - do not assume the most-used color is the background.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -204,7 +205,7 @@ async function callApi(endpoint, args) {
 }
 
 const server = new Server(
-  { name: 'miromiro', version: '0.4.1' },
+  { name: 'miromiro', version: '0.5.0' },
   { capabilities: { tools: {} } }
 )
 

@@ -67,7 +67,7 @@ const TOOLS = [
         url: { type: 'string', description: 'The website URL, e.g. stripe.com' },
         selector: { type: 'string', description: 'CSS selector for the section to extract, e.g. "#hero" or ".pricing-card". Omit to auto-detect the hero.' },
         framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue'], description: 'The code to generate (default tailwind).' },
-        name: { type: 'string', description: 'Component name for the jsx/vue targets (default ExtractedSection).' },
+        name: { type: 'string', description: 'Component name for the jsx target (default ExtractedSection). Ignored by tailwind, html and vue. Renaming never re-runs the extraction - it costs 0 credits on a cached section.' },
         render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG
       },
       required: ['url']
@@ -204,7 +204,7 @@ async function callApi(endpoint, args) {
 }
 
 const server = new Server(
-  { name: 'miromiro', version: '0.4.0' },
+  { name: 'miromiro', version: '0.4.1' },
   { capabilities: { tools: {} } }
 )
 

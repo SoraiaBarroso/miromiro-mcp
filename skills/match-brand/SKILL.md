@@ -35,13 +35,36 @@ completeness.
 If the target project uses Tailwind or CSS variables, ask for that format directly instead
 of converting the JSON yourself. Fewer transcription errors.
 
-## Reading the confidence score
+## Explaining the result, not just returning it
 
-`extract_brand` returns `confidence` between 0 and 1. A low score means the site declared
-little and MiroMiro inferred most of it — usually a site with no CSS variables and no
-theme-color. When confidence is low, say so rather than presenting inferred colors as the
-brand's official palette, and consider `extract_design_tokens` to see what the site
-actually uses by frequency.
+`extract_brand` returns `confidence` (0-1) alongside `signals`, which is the part worth
+reading. `confidence` on its own is a number a user cannot act on — "confidence is 0.55"
+tells them nothing. `signals` says what actually happened.
+
+`signals.primarySource` is the field that matters. It names where `colors.primary` came
+from, strongest signal first:
+
+| `primarySource` | What it means | What to tell the user |
+|---|---|---|
+| `css-var` | The site declares its own `--brand` / `--accent` / `--primary` custom property | These are the brand's real tokens, not a guess |
+| `theme-color` | Taken from its `<meta name="theme-color">` | The site declared this color itself |
+| `logo` | Sampled from vivid colors in the site's SVG logo | Derived from the logo, close but not declared |
+| `usage` | Ranked by how often each color appears in the stylesheet | **Inferred.** Say so — do not present it as the official palette |
+
+The other fields fill in the picture: `declaredBackground` / `declaredText` (whether those
+roles were declared or derived from the light/dark theme), `declaredLogo` (a real logo
+versus an og:image fallback), and `fontsFound`.
+
+`signals.explanation` is a ready-made sentence covering all of this, written to be repeated
+to a human. Use it rather than composing your own summary or quoting the score.
+
+The rule that matters: **when `primarySource` is `usage`, the site declared nothing and the
+colors are an approximation.** Presenting those as a brand's official palette is the one
+failure mode here that produces confidently wrong work. Say it's inferred, and consider
+`extract_design_tokens` to show what the site actually uses by frequency.
+
+Note that `usage` does not imply the site has no logo — a monochrome logo yields no vivid
+color candidate, so `primarySource: "usage"` and `declaredLogo: true` can both be true.
 
 ## Typography
 

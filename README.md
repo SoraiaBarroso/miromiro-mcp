@@ -67,7 +67,7 @@ claude mcp add miromiro -s user \
 | Tool | What it returns | Credits |
 |---|---|---|
 | `extract_code` | A section of a live page as a paste-ready component (Tailwind, HTML+CSS, JSX or Vue) plus the tokens it uses - start here to rebuild real UI | 25 |
-| `extract_brand` | Named color roles (primary/accent/background/text), palette, fonts split by role, logo, social profiles, and a 0-1 confidence score | 15 |
+| `extract_brand` | Named color roles (primary/accent/background/text), palette, fonts split by role, logo, social profiles, a 0-1 confidence score, and `signals` explaining where the colors came from (declared tokens vs inferred) | 15 |
 | `extract_design_tokens` | Full token system with usage counts; `format: css` or `tailwind` for paste-ready output, `dtcg` for a W3C Design Tokens file (Style Dictionary / Figma variables) | 10 |
 | `extract_fonts` | Every font file and family the site loads, with weights, formats, and file URLs | 5 |
 | `extract_videos` | Video files, `og:video`, and player embeds (YouTube, Vimeo, Wistia, Loom), tagged by source | 1 |

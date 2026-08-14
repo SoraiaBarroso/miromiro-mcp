@@ -39,7 +39,7 @@ const TOOL_ANNOTATIONS = {
 // client-rendered React/Next/SPA sites that return little statically.
 const RENDER_ARG = {
   type: 'boolean',
-  description: 'Run the page in a real browser first so its JavaScript executes - use for client-rendered (React/Next/SPA) sites, or when a normal call came back thin. Slower, and adds 5 credits to the call.'
+  description: 'Run the page in a real browser first so its JavaScript executes - use for client-rendered (React/Next/SPA) sites, when a normal call came back thin, or after a 403 target_blocked (bot protection refuses plain HTTP requests but usually lets a browser through). Slower, and adds 5 credits to the call.'
 }
 
 // Shared input arg: skip the 24h cache for this one call (charged normally).
@@ -296,7 +296,7 @@ const TOOLS = [
     title: 'Extract fonts',
     endpoint: 'fonts',
     description:
-      "Detect the real typography a site loads by resolving its full CSS cascade: every @font-face file with family/weight/style/format, Google Fonts links, preloads, plus a grouped per-family summary (families). Pass fields='families' for just the summary. Use to match typography.",
+      "Detect the real typography a site loads by resolving its full CSS cascade: every @font-face file with family/weight/style/format, Google Fonts links, preloads, plus a grouped per-family summary (families). Pass fields='families' for just the summary. Use to match typography. On a type-foundry site the families served are usually demo cuts of the products (subset character set, kerning and OpenType features stripped) - those are flagged demo:true with a note, and you should pass that on rather than presenting them as the real font.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -335,12 +335,14 @@ const TOOLS = [
               source: { type: 'string' },
               weights: { type: 'array', items: { type: 'string' } },
               styles: { type: 'array', items: { type: 'string' } },
-              files: { type: 'number' }
+              files: { type: 'number' },
+              demo: { type: 'boolean', description: 'The family name marks it a foundry demo/trial cut, not the real font' }
             }
           }
         },
         googleFontsLinks: { type: 'array', items: { type: 'string' } },
         count: { type: 'number' },
+        note: { type: 'string', description: 'Only present when demo/trial families were found - tell the user, these files are subset and feature-stripped, not the usable typeface' },
         usage: OUT_USAGE,
         truncation_note: OUT_TRUNCATION
       },
@@ -497,7 +499,9 @@ const INSTRUCTIONS =
   'say which one you returned. The API reads static HTML+CSS by default; pass render=true on any tool to ' +
   'execute the page JavaScript in a real browser first (client-rendered sites, +5 credits). When a static ' +
   'call comes back thin because the page is client-rendered, the response includes a hint field saying to ' +
-  'retry with render=true - follow it. Explain your results, do not just dump them: extract_brand returns a ' +
+  'retry with render=true - follow it. Likewise a 403 target_blocked is rarely a dead end: it is usually the ' +
+  "site's bot protection turning away a plain HTTP request, so retry the SAME url with render=true before " +
+  'telling the user the site cannot be extracted. Explain your results, do not just dump them: extract_brand returns a ' +
   'signals object saying where the colors came from (signals.explanation is a sentence written to be repeated ' +
   'to the user) - when signals.primarySource is "usage" the site declared nothing and the colors are an ' +
   'inferred guess, so say that instead of presenting them as the official palette. Rendered calls can also ' +
@@ -506,7 +510,7 @@ const INSTRUCTIONS =
   'bypass the 24h cache when a site just changed.'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.6.0' },
+  { name: 'miromiro', version: '0.6.1' },
   { capabilities: { tools: {} }, instructions: INSTRUCTIONS }
 )
 

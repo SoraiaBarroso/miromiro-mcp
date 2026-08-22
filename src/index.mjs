@@ -76,7 +76,7 @@ const TOOLS = [
     title: 'Extract section as code',
     endpoint: 'code',
     description:
-      "Turn a section of a LIVE website into clean, paste-ready component code. Give it a URL and (optionally) a CSS selector; it resolves the page's real CSS cascade and returns a self-contained component in Tailwind, plain HTML+CSS, React (JSX) or Vue — plus the design tokens that section actually uses. The response also includes `sections`: every extractable section on the page with a human-readable label and a ready selector — when the user wants a specific part (pricing, footer, testimonials), find it there and call again with that selector. For jsx/vue, repeated structures (pricing tiers, testimonial cards, feature lists) are collapsed into a data array rendered with .map()/v-for - one template plus the data, like a human would write it. The section's ::before/::after decorations come back as real elements, dark-mode styles as dark: variants, and its @keyframes ship in the css field. The `theme` field (light | dark) tells you which theme the returned code actually is - measured from the page, never echoed back from your request. A site that expresses its themes through a prefers-color-scheme media query returns its LIGHT branch by default, so pass theme='dark' when the user is looking at that site in dark mode or asks for its dark version; sites that scope themes to a root attribute or class are read correctly either way. Say which theme you returned. USE THIS whenever the user asks to rebuild, clone, port, or copy a section of a real website: it returns the actual code with true colors, fonts, spacing and copy, so you adapt real values instead of guessing from a screenshot. Note: it reads static HTML/CSS by default - summary.styledCoverage (0-100) tells you how much styling resolved, and a client-rendered app that returns little includes a hint field saying to call again with render=true (+5 credits). Follow it.",
+      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue. Give it the URL; omit selector on the first call - it auto-detects the hero and returns `sections`, every other extractable section with a label and a ready selector, so pick from that list for a follow-up call rather than guessing a CSS selector (guessed selectors fail with 404). Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Reads static HTML/CSS by default; if the result is thin or carries a `hint`, call again with render=true (+5 credits).",
     inputSchema: {
       type: 'object',
       properties: {
@@ -129,7 +129,7 @@ const TOOLS = [
     title: 'Extract brand identity',
     endpoint: 'brand',
     description:
-      "Get a website's curated brand identity: color roles (primary, accent, background, text) read from the site's own CSS variables and logo — each as hex plus a human-readable name like 'Royal Blue' — dark/light theme detection, the brand palette, fonts split by role (primary/mono), logo, social image, the brand's social profiles (X, GitHub, LinkedIn, …), and a 0-1 confidence score for how much the site declared vs how much was inferred. Use this when you only need a site's STYLE (colors/fonts) rather than its code — to build new UI 'in the style of' a reference site. If you need the actual markup of a section, use extract_code instead. The result also carries `signals`, which explains WHERE the colors came from: check `signals.primarySource` and tell the user whether these are the site's own declared tokens ('css-var'/'theme-color') or values inferred from usage frequency ('usage') — never present inferred colors as the brand's official palette. `signals.explanation` is a sentence written to be repeated to the user.",
+      "Use when the user wants a site's brand: its colors, fonts, logo, theme or social links - 'what colors does stripe use', 'match this brand', 'build something in the style of X'. Returns role colors (primary, accent, background, text) as hex with human-readable names, the wider palette, fonts by role, logo candidates, social profiles, dark/light theme, and a 0-1 confidence score with `signals` explaining where the colors came from: read signals.explanation and tell the user whether they were declared by the site ('css-var'/'theme-color') or inferred from usage frequency ('usage', a guess) - never present inferred colors as the official palette. Not for: markup or layout (use extract_code) or the full token list (use extract_design_tokens).",
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'The website URL, e.g. stripe.com' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
@@ -186,7 +186,7 @@ const TOOLS = [
     title: 'Extract design tokens',
     endpoint: 'extract',
     description:
-      "Extract the full design-token system of a URL: every color, font family, font size, border radius, box shadow, line height and z-index (with usage counts). Pass format='css' for a :root {} block, format='tailwind' for a tailwind.config, or format='dtcg' for a standalone W3C Design Tokens file (drops into Style Dictionary / Figma variables pipelines). Use when you need the complete token set, not just the brand summary. Returns VALUES and how often each is used - not layout, spacing composition or shadow stacks, and not which value belongs to which element: if the user asked you to rebuild or clone a section, use extract_code instead, which returns the real markup with the values already in place. Counts are tallied over the whole stylesheet, so a site shipping both light and dark themes returns the union of the two (see colorSchemes) - do not assume the most-used color is the background. The colorSchemes field tells you which themes the page declares; when it lists both, pick colours by role rather than by frequency, and use extract_code with theme=dark when you need one theme on its own.",
+      "Use when the user wants a site's complete token system - every color, font family, size, weight, spacing value, radius, shadow, line height, gradient and breakpoint with usage counts - or a paste-ready :root block (format='css'), tailwind.config (format='tailwind') or W3C Design Tokens file (format='dtcg', for Style Dictionary / Figma variables). Returns values and counts only, not layout or which element uses what: if the user asked to rebuild or clone a section, use extract_code, which returns the markup with the values in place. A site shipping light and dark themes returns the union of both (see colorSchemes) - pick colors by role, not by frequency, and use extract_code with theme=dark for one theme on its own. Not for: a short brand summary (use extract_brand).",
     inputSchema: {
       type: 'object',
       properties: {
@@ -226,7 +226,7 @@ const TOOLS = [
     title: 'Extract images',
     endpoint: 'images',
     description:
-      "List every image on a page (img, srcset, picture, CSS background, favicon, og:image) as resolved URLs tagged by source. Use to recover imagery from a site or pull reference assets. Best-effort from static HTML: if images are mounted by JavaScript, call again with render=true (+5 credits).",
+      "Use when the user wants the images from a page - photos, illustrations, backgrounds, favicon, social image - as resolved URLs tagged by source (img, srcset, picture, CSS background, favicon, og). Not for: icons and vector logos (use extract_svgs) or fonts (use extract_fonts). If images are mounted by JavaScript, call again with render=true (+5 credits).",
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
@@ -261,7 +261,7 @@ const TOOLS = [
     title: 'Extract SVGs',
     endpoint: 'svg',
     description:
-      "Extract inline SVGs (as paste-ready code) and SVG file references from a page. Use to grab icons and vector logos. Best-effort from static HTML: if icons are mounted by JavaScript, call again with render=true (+5 credits).",
+      "Use when the user wants a site's icons or vector logos: inline SVGs as paste-ready markup plus external .svg file URLs. Not for: raster images (use extract_assets). If icons are mounted by JavaScript, call again with render=true (+5 credits).",
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
@@ -296,7 +296,7 @@ const TOOLS = [
     title: 'Extract fonts',
     endpoint: 'fonts',
     description:
-      "Detect the real typography a site loads by resolving its full CSS cascade: every @font-face file with family/weight/style/format, Google Fonts links, preloads, plus a grouped per-family summary (families). Pass fields='families' for just the summary. Use to match typography. On a type-foundry site the families served are usually demo cuts of the products (subset character set, kerning and OpenType features stripped) - those are flagged demo:true with a note, and you should pass that on rather than presenting them as the real font.",
+      "Use when the user asks which fonts a site uses or wants to match its typography: every @font-face file with family/weight/style/format, Google Fonts links and preloads, grouped per family in `families` (pass fields='families' for just that). On a type-foundry site the families served are demo cuts (subset, features stripped), flagged demo:true with a note - pass that on, they are not the usable typeface. Not for: colors (use extract_brand) or code (use extract_code).",
     inputSchema: {
       type: 'object',
       properties: {
@@ -355,7 +355,7 @@ const TOOLS = [
     title: 'Extract Lottie animations',
     endpoint: 'lottie',
     description:
-      "Find Lottie/animation JSON files declared on a page. Best-effort from static HTML - most Lotties are runtime-injected, so pass render=true to execute the page JS first and catch those too (+5 credits). Use to recover animations.",
+      "Use when the user wants a site's Lottie or animation JSON files. Most Lotties are injected at runtime, so pass render=true (+5 credits) when the static call finds none.",
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
@@ -390,7 +390,7 @@ const TOOLS = [
     title: 'Extract videos',
     endpoint: 'videos',
     description:
-      'List every video a page declares: <video>/<source> files, og:video, player embeds (YouTube, Vimeo, Wistia, Loom) and direct video-file links - each tagged by source, with a poster image when declared. Note `source: "embed"` is a player page, not a downloadable file. Best-effort from static HTML: most sites mount their player with JavaScript, so if the result is thin or empty, call again with render=true to execute the page JS first (+5 credits).',
+      'Use when the user wants the videos on a page: <video>/<source> files, og:video, YouTube/Vimeo/Wistia/Loom embeds and direct video links, each tagged by source with a poster when declared. `source: "embed"` is a player page, not a downloadable file. Most players mount with JavaScript: if the result is thin or empty, call again with render=true (+5 credits).',
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
@@ -426,7 +426,7 @@ const TOOLS = [
     title: 'Extract audio',
     endpoint: 'audio',
     description:
-      'List every audio file a page declares: <audio>/<source> files, og:audio, and direct audio-file links such as podcast enclosures and download buttons - each tagged by source. Best-effort from static HTML: if a JavaScript player mounts the audio at runtime, call again with render=true (+5 credits).',
+      'Use when the user wants the audio files on a page: <audio>/<source> files, og:audio, podcast enclosures and download links, each tagged by source. If a JavaScript player mounts the audio at runtime, call again with render=true (+5 credits).',
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
@@ -510,7 +510,7 @@ const INSTRUCTIONS =
   'bypass the 24h cache when a site just changed.'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.6.1' },
+  { name: 'miromiro', version: '0.6.2' },
   { capabilities: { tools: {} }, instructions: INSTRUCTIONS }
 )
 

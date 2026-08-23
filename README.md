@@ -78,12 +78,29 @@ claude mcp add miromiro -s user \
 
 All tools are read-only and retry-safe. Identical calls within 24 hours are served from cache for free, and failed calls are never billed.
 
+### Asking for a part of the page by name
+
+`extract_code` takes `section` - one of `hero`, `header`, `footer`, `pricing`, `features`, `testimonials`, `faq`, `cta` - so the agent never has to invent a CSS selector for a page it cannot see. Every result also lists the page's other `sections` with ready selectors for follow-up calls. A selector or section that matches nothing falls back to the hero with a `note` saying what the page does have, instead of a dead-end 404.
+
+### Prompts (slash commands)
+
+The server exposes three MCP prompts, which clients surface before the first call - Claude Code as `/mcp__miromiro__clone_section`, `/mcp__miromiro__brand_kit` and `/mcp__miromiro__design_tokens`, VS Code as `/miromiro.<name>`, Cursor in its prompt menu:
+
+| Prompt | Arguments | What it does |
+|---|---|---|
+| `clone_section` | `url`, `section?`, `framework?` | Rebuild a section of a live site as paste-ready code, with its real values, and list the other sections |
+| `brand_kit` | `url` | The brand colors, fonts, logo and socials, explained (declared vs inferred) |
+| `design_tokens` | `url`, `format?` | The complete token system as CSS, Tailwind, DTCG or JSON, with a short summary |
+
 ### Controlling output size (remote server)
 
 Remote results are trimmed by default so a big page cannot flood the chat context, and every trimmed response says exactly what was dropped. Two optional arguments loosen it per call:
 
+- `response_format: 'concise' | 'detailed'` - the one-word knob: `concise` keeps lists to 10 entries for a chat answer, `detailed` returns everything the tool has
 - `limit` (up to 200) - raise the item cap: "give me 80 SVGs, not 20"
 - `full_output: true` - complete long strings, like entire inline SVG markup
+
+Generated code is never trimmed. Results stop at roughly 20k tokens (25k for `extract_code`) so they fit the tool-result cap of Claude Code, Claude Desktop and Cursor, and the `truncation_note` says how many tokens were cut and which argument brings them back.
 
 The REST API and this local npm server always return everything untrimmed, so `limit` and
 `full_output` apply to the remote server only. Every tool on both servers accepts

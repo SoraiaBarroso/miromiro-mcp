@@ -16,7 +16,9 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
-  ListToolsRequestSchema
+  ListToolsRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema
 } from '@modelcontextprotocol/sdk/types.js'
 
 const API_BASE = process.env.MIROMIRO_API_BASE || 'https://miromiro.app/api/v1'
@@ -33,6 +35,10 @@ const TOOL_ANNOTATIONS = {
   idempotentHint: true,
   openWorldHint: true
 }
+
+// Sections an agent can ask for by name instead of inventing a CSS selector
+// (mirrors NAMED_SECTIONS in the API's extractCode.ts).
+const NAMED_SECTIONS = ['hero', 'header', 'footer', 'pricing', 'features', 'testimonials', 'faq', 'cta']
 
 // Shared input arg: every tool accepts render=true to execute the page's
 // JavaScript in a real (rented) browser before extraction - the fix for
@@ -76,12 +82,13 @@ const TOOLS = [
     title: 'Extract section as code',
     endpoint: 'code',
     description:
-      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue. Give it the URL; omit selector on the first call - it auto-detects the hero and returns `sections`, every other extractable section with a label and a ready selector, so pick from that list for a follow-up call rather than guessing a CSS selector (guessed selectors fail with 404). Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Reads static HTML/CSS by default; if the result is thin or carries a `hint`, call again with render=true (+5 credits).",
+      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue. Give it the URL and, when the user named a part of the page, section (hero, header, footer, pricing, features, testimonials, faq, cta) - never invent a CSS selector. With neither, it auto-detects the hero; every call also returns `sections`, each other extractable section with a label and a ready selector for a follow-up call. Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Reads static HTML/CSS by default; if the result is thin or carries a `hint`, call again with render=true (+5 credits).",
     inputSchema: {
       type: 'object',
       properties: {
         url: { type: 'string', description: 'The website URL, e.g. stripe.com' },
-        selector: { type: 'string', description: 'CSS selector for the section to extract, e.g. "#hero" or ".pricing-card". Omit to auto-detect the hero.' },
+        section: { type: 'string', enum: NAMED_SECTIONS, description: "Which part of the page, by name - use this when the user asked for the pricing, footer, header/nav, features, testimonials, FAQ or call-to-action block. Resolved on the page itself, so it works without seeing the markup. Omit for the hero. If the page has no such section you get the hero plus a `note` listing what is there." },
+        selector: { type: 'string', description: 'CSS selector for the section, ONLY when you have one from a previous result\'s `sections` list (e.g. "section.pricing-grid"). Do not guess selectors: a selector that matches nothing falls back to the hero with a `note`, and the guess costs a call. Prefer `section` for named parts of a page.' },
         framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue'], description: 'The code to generate (default tailwind).' },
         name: { type: 'string', description: 'Component name for the jsx target (default ExtractedSection). Ignored by tailwind, html and vue. Renaming never re-runs the extraction - it costs 0 credits on a cached section.' },
         theme: { type: 'string', enum: ['light', 'dark'], description: "Which colour scheme to extract (default light). Pass 'dark' when the user is looking at the site in dark mode or asks for the dark version: the page's prefers-color-scheme: dark rules and custom properties become the component itself instead of riding along as dark: variants. Works whether the site expresses its themes as @media (prefers-color-scheme) or as a root attribute/class the CSS is scoped to ([data-theme=dark], html.dark). Sites that switch themes purely in JavaScript cannot be selected this way - you get the page default plus a hint saying so. No extra credits." },
@@ -94,7 +101,9 @@ const TOOLS = [
       properties: {
         url: { type: 'string' },
         selector: { type: 'string', description: 'The CSS selector that was extracted' },
+        section: { type: 'string', description: 'The named section that was resolved, when one was requested' },
         autoDetected: { type: 'boolean', description: 'True when the hero was auto-detected rather than passed in' },
+        note: { type: 'string', description: 'Present when the requested selector or section was not found and the hero was returned instead - says what was asked for and which sections the page does have. Tell the user.' },
         sections: {
           type: 'array',
           description: 'Every extractable section on the page - call again with one of these selectors for a specific part',
@@ -460,7 +469,28 @@ const TOOLS = [
 
 // Query params a tool may forward to the API, beyond `url`. Anything else in the
 // tool arguments is ignored, so a hallucinated param can't reach the endpoint.
-const FORWARDED_PARAMS = ['format', 'selector', 'framework', 'name', 'theme', 'fields', 'render', 'fresh', 'screenshot']
+const FORWARDED_PARAMS = ['format', 'selector', 'section', 'framework', 'name', 'theme', 'fields', 'render', 'fresh', 'screenshot']
+
+// A selector/section that matched nothing. The API answers 404 (free); the
+// stdio server then falls back to the hero so the agent gets the `sections`
+// list in the same turn instead of a dead end - mirrors the remote server.
+const SELECTOR_MISS_RE = /^No (element matched|"[a-z]+" section was found)/i
+
+async function fetchApi(endpoint, q) {
+  const res = await fetch(`${API_BASE}/${endpoint}?${q}`, {
+    headers: { Authorization: `Bearer ${API_KEY}` }
+  })
+  const isJson = (res.headers.get('content-type') || '').includes('application/json')
+  const body = isJson ? await res.json() : await res.text()
+  if (!res.ok) {
+    const msg = isJson ? (body.statusMessage || body.message || JSON.stringify(body)) : body
+    const err = new Error(`MiroMiro API ${res.status}: ${msg}`)
+    err.status = res.status
+    err.apiMessage = String(msg)
+    throw err
+  }
+  return { body, isJson }
+}
 
 async function callApi(endpoint, args) {
   const q = new URLSearchParams({ url: args.url })
@@ -469,50 +499,113 @@ async function callApi(endpoint, args) {
       q.set(p, String(args[p]))
     }
   }
-  const res = await fetch(`${API_BASE}/${endpoint}?${q}`, {
-    headers: { Authorization: `Bearer ${API_KEY}` }
-  })
-  const isJson = (res.headers.get('content-type') || '').includes('application/json')
-  const body = isJson ? await res.json() : await res.text()
-  if (!res.ok) {
-    const msg = isJson ? (body.statusMessage || body.message || JSON.stringify(body)) : body
-    throw new Error(`MiroMiro API ${res.status}: ${msg}`)
+  let result
+  let note = null
+  try {
+    result = await fetchApi(endpoint, q)
+  } catch (err) {
+    const asked = q.get('selector') ? `selector "${q.get('selector')}"` : q.get('section') ? `section "${q.get('section')}"` : null
+    if (err.status !== 404 || !asked || !SELECTOR_MISS_RE.test(err.apiMessage || '')) throw err
+    q.delete('selector')
+    q.delete('section')
+    result = await fetchApi(endpoint, q)
+    note = `The requested ${asked} was not found on this page, so the auto-detected hero was returned instead. ` +
+      'Pick the part the user wants from `sections` (call again with its selector) or pass section=' +
+      `${NAMED_SECTIONS.filter(s => s !== 'hero').join('|')}. Tell the user which section you returned.`
   }
+  const { body, isJson } = result
   // Compact JSON: pretty-printing spends ~30% more model context on whitespace.
-  return isJson ? JSON.stringify(body) : body
+  if (!isJson) return body
+  return JSON.stringify(note && body && typeof body === 'object' && !Array.isArray(body) ? { ...body, note } : body)
 }
+
+// Prompts: the one MCP primitive a user sees BEFORE the first call. Claude Code
+// lists them as /mcp__miromiro__<name>, VS Code as /miromiro.<name>, Cursor in
+// its prompt menu. Same text as the remote server.
+const PROMPT_URL_ARG = { name: 'url', description: 'The website URL, e.g. stripe.com', required: true }
+const PROMPTS = [
+  {
+    name: 'clone_section',
+    title: 'Clone a section of a live site',
+    description: 'Rebuild a section of a real website (hero by default) as paste-ready code in the framework you use, with its real colors, fonts and spacing.',
+    arguments: [
+      PROMPT_URL_ARG,
+      { name: 'section', description: `Which part: ${NAMED_SECTIONS.join(', ')} (default hero)` },
+      { name: 'framework', description: 'tailwind (default), html, jsx or vue' }
+    ],
+    render: ({ url, section, framework }) =>
+      `Rebuild the ${section || 'hero'} section of ${url} as ${framework || 'tailwind'} code I can paste into my project. ` +
+      `Call extract_code with url="${url}"${section ? `, section="${section}"` : ''}${framework ? `, framework="${framework}"` : ''} ` +
+      'and adapt the result: keep its real colors, fonts, spacing and copy, fix anything that is clearly page-specific, and tell me which theme (light or dark) the extraction returned. ' +
+      'If the result is thin or carries a hint, retry with render=true before giving up. Then list the other sections the page has in case I want one of those next.'
+  },
+  {
+    name: 'brand_kit',
+    title: 'Brand kit from a URL',
+    description: "A site's brand identity - role colors with names, fonts, logo, socials - explained, not dumped, with a note on how much was declared vs inferred.",
+    arguments: [PROMPT_URL_ARG],
+    render: ({ url }) =>
+      `Give me the brand kit for ${url}: primary, accent, background and text colors (hex plus names), the fonts by role, the best logo URL and social profiles. ` +
+      `Call extract_brand with url="${url}". Read signals.explanation and tell me whether the colors were declared by the site or inferred from usage; if they were inferred, say so plainly. ` +
+      'Finish with one line on what I could extract next (a section as code, or the full token set).'
+  },
+  {
+    name: 'design_tokens',
+    title: 'Design tokens from a URL',
+    description: "A site's complete token system as a paste-ready block: CSS custom properties, a Tailwind theme, or a W3C Design Tokens file.",
+    arguments: [
+      PROMPT_URL_ARG,
+      { name: 'format', description: 'css (default), tailwind, dtcg or json' }
+    ],
+    render: ({ url, format }) =>
+      `Extract the design tokens of ${url} as ${format || 'css'}. Call extract_design_tokens with url="${url}", format="${format || 'css'}". ` +
+      'Return the block ready to paste, then summarise the system in a few lines: the palette by role, the type scale, the spacing and radius scale. ' +
+      'If colorSchemes lists both light and dark, say that the values are the union of the two and that extract_code with theme=dark separates them.'
+  }
+]
 
 // Server-level guidance, sent once at initialize. Mirrors the `instructions`
 // string the remote server (miromiro.app/mcp) returns, so a stdio client gets
 // the same steering as a hosted one — chiefly: explain results, don't just dump
 // them, and never present inferred brand colors as declared ones.
 const INSTRUCTIONS =
-  'MiroMiro turns any live URL into design data: section-level code (extract_code), brand identity ' +
-  '(extract_brand), the full design-token system (extract_design_tokens), images, SVGs, fonts, videos, audio and Lottie files. ' +
-  'Reach for extract_code when asked to rebuild or clone part of a real site; extract_brand when only ' +
-  'colors/fonts are needed; extract_design_tokens when you want the whole value system (it returns values ' +
-  'and usage counts, NOT layout, spacing composition or which value belongs to which element - it is not a ' +
-  'substitute for extract_code on a rebuild). When a site expresses its themes through a ' +
-  'prefers-color-scheme media query, extraction returns the LIGHT branch by default and carries the dark ' +
-  'one as dark: variants - so pass theme=dark to extract_code when the user is viewing that site in dark ' +
-  'mode or asks for its dark version. Every code response reports the theme you actually got: check it and ' +
-  'say which one you returned. The API reads static HTML+CSS by default; pass render=true on any tool to ' +
-  'execute the page JavaScript in a real browser first (client-rendered sites, +5 credits). When a static ' +
-  'call comes back thin because the page is client-rendered, the response includes a hint field saying to ' +
-  'retry with render=true - follow it. Likewise a 403 target_blocked is rarely a dead end: it is usually the ' +
-  "site's bot protection turning away a plain HTTP request, so retry the SAME url with render=true before " +
-  'telling the user the site cannot be extracted. Explain your results, do not just dump them: extract_brand returns a ' +
-  'signals object saying where the colors came from (signals.explanation is a sentence written to be repeated ' +
-  'to the user) - when signals.primarySource is "usage" the site declared nothing and the colors are an ' +
-  'inferred guess, so say that instead of presenting them as the official palette. Rendered calls can also ' +
-  'take screenshot=true for a public image URL of the page (show it to the user to verify an extraction). ' +
-  'extract_design_tokens takes format=dtcg for a W3C Design Tokens file. Pass fresh=true on any tool to ' +
-  'bypass the 24h cache when a site just changed.'
+  'Use MiroMiro when the user wants anything from a real, live website\'s design: rebuild, clone, copy or ' +
+  'restyle a section, or "make mine look like X" (extract_code); its brand colors, fonts and logo (extract_brand); ' +
+  'its complete design-token set as CSS variables or a W3C tokens file (extract_design_tokens); or its images, ' +
+  'SVG icons, font files, videos, audio or Lottie files (the extract_* asset tools). Any public URL works, no setup. ' +
+  'Not for: general web scraping or search, page text, pages behind a login, or CSS questions with no specific site. ' +
+  'How to call: give extract_code the URL plus section=hero|header|footer|pricing|features|testimonials|faq|cta when ' +
+  'the user named a part of the page; never invent a CSS selector (a miss falls back to the hero with a `note`). Every ' +
+  'result lists the page\'s other `sections` with ready selectors for follow-ups. Static HTML+CSS is read by default: when a result is thin, carries a ' +
+  '`hint`, or a 403 target_blocked comes back, retry the SAME url with render=true (+5 credits) before telling the ' +
+  'user a site cannot be extracted. Theme: a site with a prefers-color-scheme dark variant returns its light branch ' +
+  'by default; pass theme=dark to extract_code for the dark version and report the `theme` field you actually got. ' +
+  'extract_design_tokens returns values and counts, not layout - not a substitute for extract_code on a rebuild; ' +
+  'format=dtcg gives a W3C Design Tokens file. Explain results, do not dump them: extract_brand\'s ' +
+  'signals.explanation says whether the colors were declared by the site or inferred (primarySource "usage" = a ' +
+  'guess) - repeat it to the user. Rendered calls accept screenshot=true for a public image URL of the page. ' +
+  'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.6.2' },
-  { capabilities: { tools: {} }, instructions: INSTRUCTIONS }
+  { name: 'miromiro', version: '0.7.0' },
+  { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
+
+server.setRequestHandler(ListPromptsRequestSchema, async () => ({
+  prompts: PROMPTS.map(({ name, title, description, arguments: args }) => ({ name, title, description, arguments: args }))
+}))
+
+server.setRequestHandler(GetPromptRequestSchema, async (req) => {
+  const prompt = PROMPTS.find(p => p.name === req.params.name)
+  if (!prompt) throw new Error(`Unknown prompt: ${req.params.name}`)
+  const args = req.params.arguments || {}
+  const missing = prompt.arguments.filter(a => a.required && !args[a.name])
+  if (missing.length) throw new Error(`Missing required argument: ${missing.map(a => a.name).join(', ')}`)
+  return {
+    description: prompt.description,
+    messages: [{ role: 'user', content: { type: 'text', text: prompt.render(args) } }]
+  }
+})
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: TOOLS.map(({ name, title, description, inputSchema, outputSchema }) => ({

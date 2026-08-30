@@ -584,10 +584,10 @@ const INSTRUCTIONS =
   'format=dtcg gives a W3C Design Tokens file. Explain results, do not dump them: extract_brand\'s ' +
   'signals.explanation says whether the colors were declared by the site or inferred (primarySource "usage" = a ' +
   'guess) - repeat it to the user. Rendered calls accept screenshot=true for a public image URL of the page. ' +
-  'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left).'
+  'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.7.0' },
+  { name: 'miromiro', version: '0.7.1' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

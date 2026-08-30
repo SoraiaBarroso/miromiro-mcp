@@ -132,6 +132,7 @@ The agent calls `extract_fonts` and returns every family with its font file URLs
 ## Notes
 
 - The API reads static HTML and resolves the full CSS cascade by default, so a fully client-rendered app may return little for images, video, audio and Lottie (tokens, fonts, brand, and code come from CSS and are unaffected). Pass `render: true` on any remote-server tool to run the page in a real browser first so its JavaScript executes (+5 credits).
+- Every result carries `usage` with the credits left this month. If the account holds a credit pack (one-off credits that never expire, bought at https://miromiro.app/api/pricing), `usage.packCredits` is the pack balance left; packs are drawn after the monthly credits, so a free account with a pack keeps working past its 300 credits.
 - Respect the sites you extract from: check their terms before reusing assets commercially.
 
 ## Links

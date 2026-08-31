@@ -125,7 +125,7 @@ const TOOLS = [
         theme: { type: 'string', description: "light | dark: which one the code you just received actually is. Measured from the page, never echoed from your request - so if you asked for a theme the site cannot serve, this reports what you really got. Tell the user which theme they got when it may not match what they see on the site" },
         assets: { description: 'Images/fonts the section references' },
         summary: { description: 'What was extracted, at a glance. styledCoverage (0-100) is the quality signal: the % of elements the cascade found styles for' },
-        hint: { type: 'string', description: 'Only present when the extraction looks degraded (client-rendered page, runtime-injected styles) - says what to do, usually retry with render=true' },
+        hint: { type: 'string', description: 'Only present when the extraction looks degraded (client-rendered page, runtime-injected styles) - says what to do: on a static call usually retry with render=true; on a render=true call the styles could not be resolved even in a browser, do not retry' },
         usage: OUT_USAGE,
         truncation_note: OUT_TRUNCATION
       },

@@ -87,7 +87,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         url: { type: 'string', description: 'The website URL, e.g. stripe.com' },
-        section: { type: 'string', enum: NAMED_SECTIONS, description: "Which part of the page, by name - use this when the user asked for the pricing, footer, header/nav, features, testimonials, FAQ or call-to-action block. Resolved on the page itself, so it works without seeing the markup. Omit for the hero. If the page has no such section you get the hero plus a `note` listing what is there." },
+        section: { type: 'string', enum: NAMED_SECTIONS, description: "Which part of the page, by name - use this when the user asked for the pricing, footer, header/nav, features, testimonials, FAQ or call-to-action block. Resolved on the page itself from its ids, classes, headings and, failing those, its content (prices, blockquotes, FAQ items), so it works without seeing the markup and on pages that label nothing. Omit for the hero. If the page has no such section you get the hero plus a `note` listing what is there." },
         selector: { type: 'string', description: 'CSS selector for the section, ONLY when you have one from a previous result\'s `sections` list (e.g. "section.pricing-grid"). Do not guess selectors: a selector that matches nothing falls back to the hero with a `note`, and the guess costs a call. Prefer `section` for named parts of a page.' },
         framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue'], description: 'The code to generate (default tailwind).' },
         name: { type: 'string', description: 'Component name for the jsx target (default ExtractedSection). Ignored by tailwind, html and vue. Renaming never re-runs the extraction - it costs 0 credits on a cached section.' },
@@ -587,7 +587,7 @@ const INSTRUCTIONS =
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.7.1' },
+  { name: 'miromiro', version: '0.7.2' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

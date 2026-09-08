@@ -104,7 +104,7 @@ Generated code is never trimmed. Results stop at roughly 20k tokens (25k for `ex
 
 The REST API and this local npm server always return everything untrimmed, so `limit` and
 `full_output` apply to the remote server only. Every tool on both servers accepts
-`render: true`, plus two more shared arguments:
+`render: true` (paid API plans and credit packs only - a free account gets `402 render_requires_plan` and nothing runs), plus two more shared arguments:
 
 - `fresh: true` - skip the 24-hour cache and re-extract the live page (charged normally); use when the site just changed
 - `screenshot: true` (requires `render: true`) - the result gains a `screenshot` field: a public URL of a 1440x900 capture of the page, live for 7 days, at no extra credits - show it to the user to verify an extraction. Pass `'full'` instead of `true` for the entire page height.
@@ -131,7 +131,7 @@ The agent calls `extract_fonts` and returns every family with its font file URLs
 
 ## Notes
 
-- The API reads static HTML and resolves the full CSS cascade by default, so a fully client-rendered app may return little for images, video, audio and Lottie (tokens, fonts, brand, and code come from CSS and are unaffected). Pass `render: true` on any remote-server tool to run the page in a real browser first so its JavaScript executes (+5 credits).
+- The API reads static HTML and resolves the full CSS cascade by default, so a fully client-rendered app may return little for images, video, audio and Lottie (tokens, fonts, brand, and code come from CSS and are unaffected). Pass `render: true` on any remote-server tool to run the page in a real browser first so its JavaScript executes (+5 credits). Rendering is included in the paid API plans and credit packs, not in the free account: a free account gets `402 render_requires_plan` before anything runs or is charged.
 - Every result carries `usage` with the credits left this month. If the account holds a credit pack (one-off credits that never expire, bought at https://miromiro.app/api/pricing), `usage.packCredits` is the pack balance left; packs are drawn after the monthly credits, so a free account with a pack keeps working past its 300 credits.
 - Respect the sites you extract from: check their terms before reusing assets commercially.
 

@@ -70,7 +70,7 @@ claude mcp add miromiro -s user \
 | `extract_brand` | Named color roles (primary/accent/background/text), palette, fonts split by role, logo, social profiles, a 0-1 confidence score, and `signals` explaining where the colors came from (declared tokens vs inferred) | 15 |
 | `extract_design_tokens` | Full token system with usage counts; `format: css` or `tailwind` for paste-ready output, `dtcg` for a W3C Design Tokens file (Style Dictionary / Figma variables) | 10 |
 | `extract_fonts` | Every font file and family the site loads, with weights, formats, and file URLs | 5 |
-| `extract_videos` | Video files, `og:video`, and player embeds (YouTube, Vimeo, Wistia, Loom), tagged by source; a direct video-file URL is returned as the single result | 1 |
+| `extract_videos` | Video files, `og:video`, and player embeds (YouTube, Vimeo, Wistia, Loom), tagged by source; a direct video-file URL is returned as the single result, and a YouTube/Vimeo/TikTok/Dailymotion/Loom video URL returns its player embed without a fetch | 1 |
 | `extract_audio` | Audio files, `og:audio`, and podcast enclosures, tagged by source; a direct audio-file URL is returned as the single result | 1 |
 | `extract_lottie` | Lottie animation JSON files declared in the page | 3 |
 | `extract_svgs` | Inline SVG code (sanitized, paste-ready) plus external SVG file URLs | 1 |

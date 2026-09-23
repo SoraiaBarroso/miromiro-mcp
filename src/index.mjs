@@ -399,7 +399,7 @@ const TOOLS = [
     title: 'Extract videos',
     endpoint: 'videos',
     description:
-      'Use when the user wants the videos on a page: <video>/<source> files, og:video, YouTube/Vimeo/Wistia/Loom embeds and direct video links, each tagged by source with a poster when declared. `source: "embed"` is a player page, not a downloadable file; a direct video-file URL comes back as the single result (source file). Most players mount with JavaScript: if the result is thin or empty, call again with render=true (+5 credits).',
+      'Use when the user wants the videos on a page: <video>/<source> files, og:video, YouTube/Vimeo/Wistia/Loom embeds and direct video links, each tagged by source with a poster when declared. `source: "embed"` is a player page, not a downloadable file; a direct video-file URL comes back as the single result (source file). A YouTube, Vimeo, TikTok, Dailymotion or Loom video URL is answered from the URL alone with its player embed (source platform, no fetch, never pass render for these) - tell the user the file itself cannot be downloaded through MiroMiro. Most other players mount with JavaScript: if the result is thin or empty, call again with render=true (+5 credits).',
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
@@ -587,7 +587,7 @@ const INSTRUCTIONS =
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.7.6' },
+  { name: 'miromiro', version: '0.7.7' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

@@ -235,7 +235,7 @@ const TOOLS = [
     title: 'Extract images',
     endpoint: 'images',
     description:
-      "Use when the user wants the images from a page - photos, illustrations, backgrounds, favicon, social image - as resolved URLs tagged by source (img, srcset, picture, CSS background, favicon, og). Not for: icons and vector logos (use extract_svgs) or fonts (use extract_fonts). If images are mounted by JavaScript, call again with render=true (+5 credits).",
+      "Use when the user wants the images from a page - photos, illustrations, backgrounds, favicon, social image - as resolved URLs tagged by source (img, srcset, picture, CSS background, favicon, og). A direct image-file URL comes back as the single result (source file). Not for: icons and vector logos (use extract_svgs) or fonts (use extract_fonts). If images are mounted by JavaScript, call again with render=true (+5 credits).",
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
@@ -399,7 +399,7 @@ const TOOLS = [
     title: 'Extract videos',
     endpoint: 'videos',
     description:
-      'Use when the user wants the videos on a page: <video>/<source> files, og:video, YouTube/Vimeo/Wistia/Loom embeds and direct video links, each tagged by source with a poster when declared. `source: "embed"` is a player page, not a downloadable file. Most players mount with JavaScript: if the result is thin or empty, call again with render=true (+5 credits).',
+      'Use when the user wants the videos on a page: <video>/<source> files, og:video, YouTube/Vimeo/Wistia/Loom embeds and direct video links, each tagged by source with a poster when declared. `source: "embed"` is a player page, not a downloadable file; a direct video-file URL comes back as the single result (source file). Most players mount with JavaScript: if the result is thin or empty, call again with render=true (+5 credits).',
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
@@ -435,7 +435,7 @@ const TOOLS = [
     title: 'Extract audio',
     endpoint: 'audio',
     description:
-      'Use when the user wants the audio files on a page: <audio>/<source> files, og:audio, podcast enclosures and download links, each tagged by source. If a JavaScript player mounts the audio at runtime, call again with render=true (+5 credits).',
+      'Use when the user wants the audio files on a page: <audio>/<source> files, og:audio, podcast enclosures and download links, each tagged by source; a direct audio-file URL comes back as the single result (source file). If a JavaScript player mounts the audio at runtime, call again with render=true (+5 credits).',
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'The website URL' }, render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG },
@@ -587,7 +587,7 @@ const INSTRUCTIONS =
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.7.4' },
+  { name: 'miromiro', version: '0.7.5' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

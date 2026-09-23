@@ -45,7 +45,7 @@ const NAMED_SECTIONS = ['hero', 'header', 'footer', 'pricing', 'features', 'test
 // client-rendered React/Next/SPA sites that return little statically.
 const RENDER_ARG = {
   type: 'boolean',
-  description: 'Run the page in a real browser first so its JavaScript executes - use for client-rendered (React/Next/SPA) sites, when a normal call came back thin, or after a 403 target_blocked (bot protection refuses plain HTTP requests but usually lets a browser through). Slower, and adds 5 credits to the call. Paid API plans and credit packs only: on a free account it returns 402 render_requires_plan and nothing runs - never pass it as a first attempt, and when a free account gets that error, retry without it and tell the user this page needs JS rendering, a paid feature. Free accounts still get rendering automatically when the SITE refuses the plain request (401/403/406): the server retries it in a browser at no charge, a few times a month, and the result carries usage.renderRescue explaining what happened - read that sentence out to the user when it appears.'
+  description: 'Run the page in a real browser first so its JavaScript executes - use for client-rendered (React/Next/SPA) sites, when a normal call came back thin, or after a 403 target_blocked (bot protection refuses plain HTTP requests but usually lets a browser through). Slower, and adds 5 credits to the call. Never pass it as a first attempt: call static first and render only when the result is thin or the hint asks for it. Free accounts get 5 renders a month; after that a render=true call runs as the static extraction and usage.renderSkipped says so (never a refusal) - relay that sentence and do not pass render=true again that month. Paid API plans and credit packs render without a monthly limit. Free accounts also get rendering automatically, from the same allowance, when the SITE refuses the plain request (401/403/406): the server retries it in a browser at no charge and the result carries usage.renderRescue - read that sentence out to the user when it appears.'
 }
 
 // Shared input arg: skip the 24h cache for this one call (charged normally).
@@ -587,7 +587,7 @@ const INSTRUCTIONS =
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.7.5' },
+  { name: 'miromiro', version: '0.7.6' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

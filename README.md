@@ -9,8 +9,14 @@ Works with Claude (web, desktop, Claude Code), ChatGPT, Cursor, Windsurf, Codex,
 
 ## Claude Code plugin
 
-Install as a plugin to get the tools plus three skills that teach Claude when to reach for
-each one (`clone-section`, `match-brand`, `extract-assets`):
+Install as a plugin to get the tools plus five skills that teach Claude when to reach for
+each one:
+
+- `elementor-section` - any site's section as an Elementor template to import into WordPress
+- `shopify-section` - any site's section as a Shopify theme section (`.liquid`)
+- `clone-section` - a section as Tailwind, HTML+CSS, React or Vue
+- `match-brand` - a site's colors, fonts and design tokens to build in its style
+- `extract-assets` - images, SVG icons, videos, audio and Lottie files
 
 ```bash
 claude plugin marketplace add anthropics/claude-plugins-community
@@ -20,6 +26,12 @@ claude plugin install miromiro@claude-community
 The plugin uses the remote server, so there is nothing to install and no key to paste - on
 first use it opens a one-click MiroMiro sign-in that links a free account (300 credits/month,
 no card).
+
+## Skills for OpenClaw and other agents
+
+The same skills live in [`skills/`](skills). Each one uses the MiroMiro MCP tools when they
+are connected and otherwise calls the REST API with `MIROMIRO_API_KEY` (free key, 300
+credits a month: https://miromiro.app/api/onboarding).
 
 ## Quick start: remote server (nothing to install)
 

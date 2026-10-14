@@ -1,9 +1,23 @@
 ---
 name: clone-section
 description: Rebuild a section of a real website as component code. Use when the user asks to clone, copy, port, recreate, or rebuild part of a live site (a hero, pricing table, footer, navbar), or says "make it look like <url>" and wants actual markup rather than just colors. Also when they build in WordPress/Elementor or Shopify and want a section they can import into their site.
+homepage: https://miromiro.app/api/website-to-code-api
+metadata: {"openclaw": {"emoji": "🧩", "homepage": "https://miromiro.app/api/website-to-code-api", "primaryEnv": "MIROMIRO_API_KEY"}}
 ---
 
 # Rebuild a section from a live site
+
+**With the MiroMiro tools connected** (Claude, ChatGPT, Cursor, Codex) use `extract_code` as
+below. **Without them** (OpenClaw and other agents) call the REST API with the same
+parameters as query string:
+
+```bash
+curl -s "https://miromiro.app/api/v1/code?url=linear.app&section=pricing&framework=tailwind" \
+  -H "Authorization: Bearer $MIROMIRO_API_KEY"
+```
+
+No key yet? The user gets one free at https://miromiro.app/api/onboarding (300 credits a
+month, no card). Ask them for it; never invent one. A call costs 25 credits.
 
 Use the `extract_code` tool. It resolves the page's real CSS cascade and returns a
 self-contained component with the site's true colors, fonts, spacing and copy, so you

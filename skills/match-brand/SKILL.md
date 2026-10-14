@@ -1,9 +1,23 @@
 ---
 name: match-brand
 description: Build new UI in the visual style of an existing site. Use when the user says "in the style of <url>", "match our brand", "use their colors and fonts", asks what fonts or colors a website uses, or wants a theme, palette, tailwind config, CSS variables or design tokens derived from a real website rather than a section's markup.
+homepage: https://miromiro.app/api/website-color-palette-api
+metadata: {"openclaw": {"emoji": "🎨", "homepage": "https://miromiro.app/api/website-color-palette-api", "primaryEnv": "MIROMIRO_API_KEY"}}
 ---
 
 # Build in the style of a real site
+
+**With the MiroMiro tools connected** (Claude, ChatGPT, Cursor, Codex) use the tools named
+below. **Without them** (OpenClaw and other agents) call the REST API: `/v1/brand` is
+`extract_brand`, `/v1/extract` is `extract_design_tokens`, `/v1/fonts` is `extract_fonts`.
+
+```bash
+curl -s "https://miromiro.app/api/v1/brand?url=linear.app" -H "Authorization: Bearer $MIROMIRO_API_KEY"
+curl -s "https://miromiro.app/api/v1/extract?url=linear.app&format=css" -H "Authorization: Bearer $MIROMIRO_API_KEY"
+```
+
+No key yet? The user gets one free at https://miromiro.app/api/onboarding (300 credits a
+month, no card). Ask them for it; never invent one. Brand costs 15 credits, tokens 10, fonts 5.
 
 Two tools cover this, and picking the right one matters more than it looks.
 

@@ -1,0 +1,17 @@
+{
+  "name": "miromiro",
+  "owner": {
+    "name": "MiroMiro",
+    "url": "https://miromiro.app"
+  },
+  "plugins": [
+    {
+      "name": "miromiro",
+      "source": "./",
+      "description": "Turn any live website into paste-ready code (Tailwind, HTML, React, Vue), an Elementor template for WordPress or a Shopify Liquid section, plus its brand colors, fonts, design tokens, SVGs and Lottie."
+    }
+  ],
+  "metadata": {
+    "description": "MiroMiro: any live website to Elementor templates, Shopify Liquid sections, Tailwind/React/Vue code, brand tokens and assets."
+  }
+}

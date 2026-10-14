@@ -19,8 +19,8 @@ each one:
 - `extract-assets` - images, SVG icons, videos, audio and Lottie files
 
 ```bash
-claude plugin marketplace add anthropics/claude-plugins-community
-claude plugin install miromiro@claude-community
+claude plugin marketplace add SoraiaBarroso/miromiro-mcp
+claude plugin install miromiro@miromiro
 ```
 
 The plugin uses the remote server, so there is nothing to install and no key to paste - on

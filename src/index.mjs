@@ -45,7 +45,7 @@ const NAMED_SECTIONS = ['hero', 'header', 'footer', 'pricing', 'features', 'test
 // client-rendered React/Next/SPA sites that return little statically.
 const RENDER_ARG = {
   type: 'boolean',
-  description: 'Run the page in a real browser first so its JavaScript executes - use for client-rendered (React/Next/SPA) sites, when a normal call came back thin, or after a 403 target_blocked (bot protection refuses plain HTTP requests but usually lets a browser through). Slower, and adds 5 credits to the call. Never pass it as a first attempt: call static first and render only when the result is thin or the hint asks for it. Free accounts get 5 renders a month; after that a render=true call runs as the static extraction and usage.renderSkipped says so (never a refusal) - relay that sentence and do not pass render=true again that month. Paid API plans and credit packs render without a monthly limit. Free accounts also get rendering automatically, from the same allowance, when the SITE refuses the plain request (401/403/406): the server retries it in a browser at no charge and the result carries usage.renderRescue - read that sentence out to the user when it appears.'
+  description: 'Force a real browser so the page\x27s JavaScript runs before it is read. Slower, and adds 5 credits. Usually not needed: when the plain read comes back as a JavaScript app shell or the site refuses it (401/403/406), the server already re-runs the page in a browser by itself at no extra cost, and usage.autoRender says so. Pass it for images, videos or Lottie that only load on scroll, with screenshot=true, or when a result is still thin after that automatic pass. If a 403 says the browser was refused too, the site cannot be extracted - do not retry. On extract_code and extract_design_tokens, render=true only permits the browser: the plain read still runs first, and the 5 credits are charged only if the browser was actually needed.'
 }
 
 // Shared input arg: skip the 24h cache for this one call (charged normally).
@@ -82,7 +82,7 @@ const TOOLS = [
     title: 'Extract section as code',
     endpoint: 'code',
     description:
-      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue - or as a file to import into a site builder: framework=elementor for an Elementor template (WordPress), framework=shopify for a Shopify theme section. Give it the URL and, when the user named a part of the page, section (hero, header, footer, pricing, features, testimonials, faq, cta) - never invent a CSS selector. With neither, it auto-detects the hero; every call also returns `sections`, each other extractable section with a label and a ready selector for a follow-up call. Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Reads static HTML/CSS by default; if the result is thin or carries a `hint`, call again with render=true (+5 credits).",
+      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue - or as a file to import into a site builder: framework=elementor for an Elementor template (WordPress), framework=shopify for a Shopify theme section. Give it the URL and, when the user named a part of the page, section (hero, header, footer, pricing, features, testimonials, faq, cta) - never invent a CSS selector. With neither, it auto-detects the hero; every call also returns `sections`, each other extractable section with a label and a ready selector for a follow-up call. Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Reads static HTML/CSS first and re-runs the page in a real browser by itself when that comes back as a JavaScript app shell or refused, at no extra cost (usage.autoRender says so) - no need to pass render=true.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -125,7 +125,7 @@ const TOOLS = [
         theme: { type: 'string', description: "light | dark: which one the code you just received actually is. Measured from the page, never echoed from your request - so if you asked for a theme the site cannot serve, this reports what you really got. Tell the user which theme they got when it may not match what they see on the site" },
         assets: { description: 'Images/fonts the section references' },
         summary: { description: 'What was extracted, at a glance. styledCoverage (0-100) is the quality signal: the % of elements the cascade found styles for' },
-        hint: { type: 'string', description: 'Only present when the extraction looks degraded (client-rendered page, runtime-injected styles) - says what to do: on a static call usually retry with render=true; on a render=true call the styles could not be resolved even in a browser, do not retry' },
+        hint: { type: 'string', description: 'Only present when the extraction looks degraded (client-rendered page, runtime-injected styles) - says what to do (the server has already tried a browser where one would help); on a render=true call the styles could not be resolved even in a browser, do not retry' },
         usage: OUT_USAGE,
         truncation_note: OUT_TRUNCATION
       },
@@ -588,7 +588,7 @@ const INSTRUCTIONS =
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.8.0' },
+  { name: 'miromiro', version: '0.8.1' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

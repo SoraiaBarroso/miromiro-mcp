@@ -121,7 +121,7 @@ Generated code is never trimmed. Results stop at roughly 20k tokens (25k for `ex
 
 The REST API and this local npm server always return everything untrimmed, so `limit` and
 `full_output` apply to the remote server only. Every tool on both servers accepts
-`render: true` (free accounts get 5 renders a month, then the call runs static and `usage.renderSkipped` says so; paid API plans and credit packs render without a monthly limit - see Notes), plus two more shared arguments:
+`render: true` (forces a real browser, +5 credits, on every plan; usually not needed because the server re-runs JavaScript-only or refused pages in a browser by itself - see Notes), plus two more shared arguments:
 
 - `fresh: true` - skip the 24-hour cache and re-extract the live page (charged normally); use when the site just changed
 - `screenshot: true` (requires `render: true`) - the result gains a `screenshot` field: a public URL of a 1440x900 capture of the page, live for 7 days, at no extra credits - show it to the user to verify an extraction. Pass `'full'` instead of `true` for the entire page height.
@@ -148,8 +148,8 @@ The agent calls `extract_fonts` and returns every family with its font file URLs
 
 ## Notes
 
-- The API reads static HTML and resolves the full CSS cascade by default, so a fully client-rendered app may return little for images, video, audio and Lottie (tokens, fonts, brand, and code come from CSS and are unaffected). Pass `render: true` on any remote-server tool to run the page in a real browser first so its JavaScript executes (+5 credits). Free accounts get 5 renders a month (`usage.freeRender` reports each one and how many are left); after that a `render: true` call runs as the static extraction and `usage.renderSkipped` says so - never a refusal. Paid API plans and credit packs render without a monthly limit.
-- The same allowance also works without the flag: when the SITE refuses a free account's plain request (401, 403 or 406 - publishers commonly turn away datacenter IPs even for a public page), the server retries that call in a real browser automatically and free, a few times a month. The result then carries `usage.renderRescue` (a sentence to read to the user) and `usage.renderRescuesLeft`. So on a free account, do not treat a 401/403/406 as "this site cannot be extracted" until those are used up.
+- The API reads static HTML and resolves the full CSS cascade first. When that comes back as a JavaScript app shell, with styles injected by scripts, or refused by the site (401, 403 or 406 - publishers commonly turn away datacenter IPs even for a public page), the server re-runs the call in a real browser by itself at no extra cost, on every plan, and the result carries `usage.autoRender` (a sentence to read to the user).
+- Pass `render: true` to force the browser (+5 credits, any plan): for images, video or Lottie that only load on scroll, or when a result is still thin after the automatic pass. A 403 that says the browser was refused too means the site cannot be extracted. On extract_code and extract_design_tokens, `render: true` only permits the browser: the plain read still runs first, and the 5 credits are charged only if the browser was actually needed.
 - Every result carries `usage` with the credits left this month. If the account holds a credit pack (one-off credits that never expire, bought at https://miromiro.app/api/pricing), `usage.packCredits` is the pack balance left; packs are drawn after the monthly credits, so a free account with a pack keeps working past its 300 credits.
 - Respect the sites you extract from: check their terms before reusing assets commercially.
 

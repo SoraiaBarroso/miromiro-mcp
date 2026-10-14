@@ -1,6 +1,6 @@
 ---
 name: clone-section
-description: Rebuild a section of a real website as component code. Use when the user asks to clone, copy, port, recreate, or rebuild part of a live site (a hero, pricing table, footer, navbar), or says "make it look like <url>" and wants actual markup rather than just colors.
+description: Rebuild a section of a real website as component code. Use when the user asks to clone, copy, port, recreate, or rebuild part of a live site (a hero, pricing table, footer, navbar), or says "make it look like <url>" and wants actual markup rather than just colors. Also when they build in WordPress/Elementor or Shopify and want a section they can import into their site.
 ---
 
 # Rebuild a section from a live site
@@ -33,11 +33,25 @@ Match the user's project, don't default blindly:
 - `vue` — a single-file component with `<script setup>`; `name` applies here too, and
   repeated structures collapse into a `v-for` the same way
 - `html` — plain HTML plus a companion `css` string
+- `elementor` — an importable Elementor template for WordPress. `code` is the whole
+  template JSON: have the user save it as a `.json` file and import it under Templates >
+  Saved Templates > Import.
+- `shopify` — a Shopify theme section. `code` is the whole Liquid file: save it as
+  `sections/<name>.liquid` in the theme code editor, then add the section from the theme
+  editor. Not in a Custom Liquid block - that block is capped at 50 KB and cannot hold the
+  section's schema.
 
-For every framework, the `css` field may also carry the section's `@keyframes` — add
+Elementor and Shopify output arrives as one styled HTML block, edited as code rather than
+as native widgets, with responsive and hover styles included and the CSS scoped so it
+cannot clash with the theme. Hand the file over complete and unmodified; `css` is null
+because the file already carries its styles.
+
+For tailwind, jsx and vue, the `css` field may also carry the section's `@keyframes` — add
 those to the project's global stylesheet or the animations silently do nothing.
 
-If the repo you are working in already uses one of these, use it without asking.
+If the repo you are working in already uses one of these, use it without asking. A user
+who mentions WordPress, Elementor, Shopify or a theme wants the importable file, not a
+component.
 
 ## Light or dark
 

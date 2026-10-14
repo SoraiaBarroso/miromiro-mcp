@@ -1,7 +1,7 @@
 {
   "name": "miromiro",
   "version": "0.8.0",
-  "description": "Turn any live website into brand colors, fonts, design tokens, SVGs, Lottie and paste-ready code.",
+  "description": "Turn any live website into paste-ready code (Tailwind, HTML, React, Vue), an Elementor template for WordPress or a Shopify Liquid section, plus its brand colors, fonts, design tokens, SVGs and Lottie.",
   "icon": "./assets/icon.svg",
   "author": {
     "name": "MiroMiro",
@@ -18,6 +18,10 @@
     "svg",
     "lottie",
     "design-to-code",
-    "mcp"
+    "mcp",
+    "elementor",
+    "wordpress",
+    "shopify",
+    "liquid"
   ]
 }

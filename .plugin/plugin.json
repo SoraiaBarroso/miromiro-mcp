@@ -1,7 +1,8 @@
 {
   "name": "miromiro",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "description": "Turn any live website into brand colors, fonts, design tokens, SVGs, Lottie and paste-ready code.",
+  "icon": "./assets/icon.svg",
   "author": {
     "name": "MiroMiro",
     "url": "https://miromiro.app"
@@ -9,5 +10,14 @@
   "homepage": "https://miromiro.app/api/mcp",
   "repository": "https://github.com/SoraiaBarroso/miromiro-mcp",
   "license": "MIT",
-  "keywords": ["design", "design-tokens", "brand", "fonts", "svg", "lottie", "design-to-code", "mcp"]
+  "keywords": [
+    "design",
+    "design-tokens",
+    "brand",
+    "fonts",
+    "svg",
+    "lottie",
+    "design-to-code",
+    "mcp"
+  ]
 }

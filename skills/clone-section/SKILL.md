@@ -1,4 +1,5 @@
 ---
+name: clone-section
 description: Rebuild a section of a real website as component code. Use when the user asks to clone, copy, port, recreate, or rebuild part of a live site (a hero, pricing table, footer, navbar), or says "make it look like <url>" and wants actual markup rather than just colors.
 ---
 
@@ -10,14 +11,16 @@ adapt real values instead of guessing from a screenshot.
 
 ## Picking the section
 
-Call `extract_code` with just the `url` first. It auto-detects the hero and — this is the
-part worth using — returns a `sections` array listing every extractable section on the page
-with a human-readable label and a ready-to-use selector.
+When the user names a part of the page ("their pricing table", "the footer", "the nav"),
+pass it as `section`: one of `hero`, `header`, `footer`, `pricing`, `features`,
+`testimonials`, `faq`, `cta`. MiroMiro finds that block on the page itself, so you never
+have to see the markup. Never invent a CSS selector like `.pricing` - a selector that
+matches nothing falls back to the hero with a `note`, and the guess still costs a call.
 
-When the user wants a specific part ("their pricing table", "the footer"), read `sections`
-from that first response, find the matching entry, and call again with its `selector`.
-Guessing a selector like `.pricing` wastes a call; the `sections` list already has the
-real one.
+With no `section`, `extract_code` auto-detects the hero. Every response also returns a
+`sections` array listing the other extractable sections with a human-readable label and a
+ready-to-use selector: when the part the user wants is not one of the named sections, find
+it there and call again with that `selector`.
 
 ## Choosing the framework
 
@@ -36,6 +39,13 @@ those to the project's global stylesheet or the animations silently do nothing.
 
 If the repo you are working in already uses one of these, use it without asking.
 
+## Light or dark
+
+Pass `theme: "dark"` when the user is looking at the site in dark mode or asks for the
+dark version; the response's `theme` field reports which one you actually got, so tell the
+user when it differs from what they see. Sites that switch themes purely in JavaScript
+cannot be selected this way.
+
 ## When a result comes back thin
 
 The API reads static HTML and CSS by default, and the response tells you how it went:
@@ -44,7 +54,8 @@ styles for, and when the page is client-rendered or styles itself at runtime the
 includes a `hint` field saying what to do. When you see the `hint` (or coverage is low),
 call again with `render: true` — it runs the page in a real browser so its JavaScript
 executes first. It is slower and costs 5 extra credits, so treat it as the retry, not
-the default.
+the default. With `render: true` you can also pass `screenshot: true` (or `"full"`) to get
+a URL of the rendered page, useful to show the user what was extracted.
 
 ## After you get the code
 

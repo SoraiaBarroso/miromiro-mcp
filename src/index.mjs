@@ -82,14 +82,14 @@ const TOOLS = [
     title: 'Extract section as code',
     endpoint: 'code',
     description:
-      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue. Give it the URL and, when the user named a part of the page, section (hero, header, footer, pricing, features, testimonials, faq, cta) - never invent a CSS selector. With neither, it auto-detects the hero; every call also returns `sections`, each other extractable section with a label and a ready selector for a follow-up call. Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Reads static HTML/CSS by default; if the result is thin or carries a `hint`, call again with render=true (+5 credits).",
+      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue - or as a file to import into a site builder: framework=elementor for an Elementor template (WordPress), framework=shopify for a Shopify theme section. Give it the URL and, when the user named a part of the page, section (hero, header, footer, pricing, features, testimonials, faq, cta) - never invent a CSS selector. With neither, it auto-detects the hero; every call also returns `sections`, each other extractable section with a label and a ready selector for a follow-up call. Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Reads static HTML/CSS by default; if the result is thin or carries a `hint`, call again with render=true (+5 credits).",
     inputSchema: {
       type: 'object',
       properties: {
         url: { type: 'string', description: 'The website URL, e.g. stripe.com' },
         section: { type: 'string', enum: NAMED_SECTIONS, description: "Which part of the page, by name - use this when the user asked for the pricing, footer, header/nav, features, testimonials, FAQ or call-to-action block. Resolved on the page itself from its ids, classes, headings and, failing those, its content (prices, blockquotes, FAQ items), so it works without seeing the markup and on pages that label nothing. Omit for the hero. If the page has no such section you get the hero plus a `note` listing what is there." },
         selector: { type: 'string', description: 'CSS selector for the section, ONLY when you have one from a previous result\'s `sections` list (e.g. "section.pricing-grid"). Do not guess selectors: a selector that matches nothing falls back to the hero with a `note`, and the guess costs a call. Prefer `section` for named parts of a page.' },
-        framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue'], description: 'The code to generate (default tailwind).' },
+        framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue', 'elementor', 'shopify'], description: "The code to generate (default tailwind). 'elementor' returns an importable Elementor template: tell the user to save `code` as a .json file and import it in WordPress under Templates > Saved Templates > Import. 'shopify' returns a theme section: save `code` as sections/<name>.liquid in the theme, then add it from the theme editor. Use the theme code editor's sections folder, not a Custom Liquid block (that block is capped at 50 KB and cannot hold the schema). Both arrive as one styled HTML block (edited as code, not as native widgets), with the section's responsive and hover styles included and its CSS scoped so it cannot clash with the theme. Give the user the file contents complete and unmodified." },
         name: { type: 'string', description: 'Component name for the jsx target (default ExtractedSection). Ignored by tailwind, html and vue. Renaming never re-runs the extraction - it costs 0 credits on a cached section.' },
         theme: { type: 'string', enum: ['light', 'dark'], description: "Which colour scheme to extract (default light). Pass 'dark' when the user is looking at the site in dark mode or asks for the dark version: the page's prefers-color-scheme: dark rules and custom properties become the component itself instead of riding along as dark: variants. Works whether the site expresses its themes as @media (prefers-color-scheme) or as a root attribute/class the CSS is scoped to ([data-theme=dark], html.dark). Sites that switch themes purely in JavaScript cannot be selected this way - you get the page default plus a hint saying so. No extra credits." },
         render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG
@@ -118,9 +118,9 @@ const TOOLS = [
             }
           }
         },
-        framework: { type: 'string', description: 'tailwind | html | jsx | vue' },
-        code: { type: 'string', description: 'The generated, paste-ready component code. For jsx/vue, repeated structures (tiers, cards, list items) are collapsed into a data array rendered with .map()/v-for' },
-        css: { type: 'string', description: 'Companion CSS: always set for framework=html; for other frameworks it carries the @keyframes the section uses (add to the global stylesheet)' },
+        framework: { type: 'string', description: 'tailwind | html | jsx | vue | elementor | shopify' },
+        code: { type: 'string', description: 'The generated, paste-ready component code. For jsx/vue, repeated structures (tiers, cards, list items) are collapsed into a data array rendered with .map()/v-for. For elementor this is the complete template JSON (a .json file); for shopify the complete section file (a .liquid file) - hand either over whole' },
+        css: { type: 'string', description: 'Companion CSS: always set for framework=html; for tailwind/jsx/vue it carries the @keyframes the section uses (add to the global stylesheet); null for elementor/shopify, whose file already contains its CSS' },
         tokens: { type: 'object', description: 'Design tokens the extracted section actually uses' },
         theme: { type: 'string', description: "light | dark: which one the code you just received actually is. Measured from the page, never echoed from your request - so if you asked for a theme the site cannot serve, this reports what you really got. Tell the user which theme they got when it may not match what they see on the site" },
         assets: { description: 'Images/fonts the section references' },
@@ -531,7 +531,7 @@ const PROMPTS = [
     arguments: [
       PROMPT_URL_ARG,
       { name: 'section', description: `Which part: ${NAMED_SECTIONS.join(', ')} (default hero)` },
-      { name: 'framework', description: 'tailwind (default), html, jsx or vue' }
+      { name: 'framework', description: 'tailwind (default), html, jsx, vue, elementor or shopify' }
     ],
     render: ({ url, section, framework }) =>
       `Rebuild the ${section || 'hero'} section of ${url} as ${framework || 'tailwind'} code I can paste into my project. ` +
@@ -580,6 +580,7 @@ const INSTRUCTIONS =
   '`hint`, or a 403 target_blocked comes back, retry the SAME url with render=true (+5 credits) before telling the ' +
   'user a site cannot be extracted. Theme: a site with a prefers-color-scheme dark variant returns its light branch ' +
   'by default; pass theme=dark to extract_code for the dark version and report the `theme` field you actually got. ' +
+  'For WordPress/Elementor or Shopify users, extract_code framework=elementor|shopify returns an importable template (.json) or theme section (.liquid) instead of component code. ' +
   'extract_design_tokens returns values and counts, not layout - not a substitute for extract_code on a rebuild; ' +
   'format=dtcg gives a W3C Design Tokens file. Explain results, do not dump them: extract_brand\'s ' +
   'signals.explanation says whether the colors were declared by the site or inferred (primarySource "usage" = a ' +
@@ -587,7 +588,7 @@ const INSTRUCTIONS =
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.7.7' },
+  { name: 'miromiro', version: '0.8.0' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

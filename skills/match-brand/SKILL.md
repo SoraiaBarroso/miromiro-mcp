@@ -1,5 +1,6 @@
 ---
-description: Build new UI in the visual style of an existing site. Use when the user says "in the style of <url>", "match our brand", "use their colors and fonts", or wants a theme, palette, tailwind config or CSS variables derived from a real website rather than a section's markup.
+name: match-brand
+description: Build new UI in the visual style of an existing site. Use when the user says "in the style of <url>", "match our brand", "use their colors and fonts", asks what fonts or colors a website uses, or wants a theme, palette, tailwind config, CSS variables or design tokens derived from a real website rather than a section's markup.
 ---
 
 # Build in the style of a real site
@@ -31,6 +32,8 @@ completeness.
 - `json` (default) — structured, with usage counts, best when you are reasoning about it
 - `css` — a `:root {}` block of custom properties
 - `tailwind` — a `tailwind.config` fragment
+- `dtcg` — a standalone W3C Design Tokens file, for Style Dictionary or Figma variables
+  pipelines
 
 If the target project uses Tailwind or CSS variables, ask for that format directly instead
 of converting the JSON yourself. Fewer transcription errors.

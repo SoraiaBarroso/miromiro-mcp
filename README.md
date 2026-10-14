@@ -32,8 +32,13 @@ https://miromiro.app/mcp
 Paste that URL into any client that accepts a remote MCP server. On first use it opens a one-click MiroMiro sign-in that links a free account (300 credits/month, no card).
 
 - **Claude (web or desktop):** Settings → Connectors → Add custom connector → paste the URL. Or use the [one-click install](https://miromiro.app/api/mcp).
-- **ChatGPT:** Settings → Security and login → enable Developer mode, then add the URL as a connector (authentication: OAuth).
+- **ChatGPT:** Settings → Security and login → enable Developer mode, then Settings → Plugins → New Plugin with the URL (authentication: OAuth).
 - **Cursor (remote):** add `{ "mcpServers": { "miromiro": { "url": "https://miromiro.app/mcp" } } }` to `~/.cursor/mcp.json`.
+- **Claude Code:** `claude mcp add --transport http miromiro https://miromiro.app/mcp`, then `/mcp` in a session to sign in.
+- **Codex:** add `[mcp_servers.miromiro]` with `url = "https://miromiro.app/mcp"` to `~/.codex/config.toml`, then run `codex mcp login miromiro`.
+- **Grok Bot:** ask the bot "Add a custom MCP server called miromiro at https://miromiro.app/mcp", then press Authorize.
+- **Muse:** Settings → Connectors → Add custom connector → paste the URL.
+- Step-by-step pages for each agent: https://miromiro.app/api/agents/chatgpt (swap the last part for `claude`, `claude-code`, `codex`, `cursor`, `grok-bot`, `muse` or `openai-dots`).
 - **Raw API key instead of OAuth:** append `?access_key=mm_live_...` to the URL, or send it as an `Authorization: Bearer` header.
 
 ## Local server (npm)
@@ -66,7 +71,7 @@ claude mcp add miromiro -s user \
 
 | Tool | What it returns | Credits |
 |---|---|---|
-| `extract_code` | A section of a live page as a paste-ready component (Tailwind, HTML+CSS, JSX or Vue) plus the tokens it uses - start here to rebuild real UI | 25 |
+| `extract_code` | A section of a live page as a paste-ready component (Tailwind, HTML+CSS, JSX or Vue) or an importable Elementor template / Shopify section, plus the tokens it uses - start here to rebuild real UI | 25 |
 | `extract_brand` | Named color roles (primary/accent/background/text), palette, fonts split by role, logo, social profiles, a 0-1 confidence score, and `signals` explaining where the colors came from (declared tokens vs inferred) | 15 |
 | `extract_design_tokens` | Full token system with usage counts; `format: css` or `tailwind` for paste-ready output, `dtcg` for a W3C Design Tokens file (Style Dictionary / Figma variables) | 10 |
 | `extract_fonts` | Every font file and family the site loads, with weights, formats, and file URLs | 5 |

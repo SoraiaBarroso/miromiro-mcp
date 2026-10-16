@@ -45,7 +45,7 @@ const NAMED_SECTIONS = ['hero', 'header', 'footer', 'pricing', 'features', 'test
 // client-rendered React/Next/SPA sites that return little statically.
 const RENDER_ARG = {
   type: 'boolean',
-  description: 'Force a real browser so the page\x27s JavaScript runs before it is read. Slower, and adds 5 credits. Usually not needed: when the plain read comes back as a JavaScript app shell or the site refuses it (401/403/406), the server already re-runs the page in a browser by itself at no extra cost, and usage.autoRender says so. Pass it for images, videos or Lottie that only load on scroll, with screenshot=true, or when a result is still thin after that automatic pass. If a 403 says the browser was refused too, the site cannot be extracted - do not retry. On extract_code and extract_design_tokens, render=true only permits the browser: the plain read still runs first, and the 5 credits are charged only if the browser was actually needed.'
+  description: 'Force a real browser so the page\x27s JavaScript runs before it is read. Slower, and adds 5 credits. Usually not needed: when the plain read comes back as a JavaScript app shell or the site refuses it (401/403/406), the server already re-runs the page in a browser by itself at no extra cost, and usage.autoRender says so. Pass it for images, videos or Lottie that only load on scroll, with screenshot=true, or when a result is still thin after that automatic pass. If a 403 says the browser was refused too, the site cannot be extracted - do not retry. extract_code always runs in a real browser at no extra cost, so render=true is not needed there (only together with screenshot=true). On extract_design_tokens, render=true only permits the browser: the plain read still runs first, and the 5 credits are charged only if the browser was actually needed.'
 }
 
 // Shared input arg: skip the 24h cache for this one call (charged normally).
@@ -82,7 +82,7 @@ const TOOLS = [
     title: 'Extract section as code',
     endpoint: 'code',
     description:
-      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue - or as a file to import into a site builder: framework=elementor for an Elementor template (WordPress), framework=shopify for a Shopify theme section. Give it the URL and, when the user named a part of the page, section (hero, header, footer, pricing, features, testimonials, faq, cta) - never invent a CSS selector. With neither, it auto-detects the hero; every call also returns `sections`, each other extractable section with a label and a ready selector for a follow-up call. Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Reads static HTML/CSS first and re-runs the page in a real browser by itself when that comes back as a JavaScript app shell or refused, at no extra cost (usage.autoRender says so) - no need to pass render=true.",
+      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue - or as a file to import into a site builder: framework=elementor for an Elementor template (WordPress), framework=shopify for a Shopify theme section. Give it the URL and, when the user named a part of the page, section (hero, header, footer, pricing, features, testimonials, faq, cta) - never invent a CSS selector. With neither, it auto-detects the hero; every call also returns `sections`, each other extractable section with a label and a ready selector for a follow-up call. Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Loads the page in a real browser and reads the styles, theme and images it actually shows, on every plan at no extra cost - no need to pass render=true.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -538,7 +538,7 @@ const PROMPTS = [
       `Rebuild the ${section || 'hero'} section of ${url} as ${framework || 'tailwind'} code I can paste into my project. ` +
       `Call extract_code with url="${url}"${section ? `, section="${section}"` : ''}${framework ? `, framework="${framework}"` : ''} ` +
       'and adapt the result: keep its real colors, fonts, spacing and copy, fix anything that is clearly page-specific, and tell me which theme (light or dark) the extraction returned. ' +
-      'If the result is thin or carries a hint, retry with render=true before giving up. Then list the other sections the page has in case I want one of those next.'
+      'If the result carries a hint, follow it. Then list the other sections the page has in case I want one of those next.'
   },
   {
     name: 'brand_kit',
@@ -589,7 +589,7 @@ const INSTRUCTIONS =
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.8.2' },
+  { name: 'miromiro', version: '0.9.0' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

@@ -114,7 +114,8 @@ const TOOLS = [
               label: { type: 'string' },
               elements: { type: 'number' },
               hasHeading: { type: 'boolean' },
-              preview: { type: 'string' }
+              preview: { type: 'string' },
+              order: { type: 'number', description: 'Where the section starts on the page among the listed ones, 1 = topmost - sort by it to rebuild a whole page in sequence' }
             }
           }
         },
@@ -588,7 +589,7 @@ const INSTRUCTIONS =
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.8.1' },
+  { name: 'miromiro', version: '0.8.2' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

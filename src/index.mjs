@@ -82,7 +82,7 @@ const TOOLS = [
     title: 'Extract section as code',
     endpoint: 'code',
     description:
-      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue - or as a file to import into a site builder: framework=elementor for an Elementor template (WordPress), framework=shopify for a Shopify theme section. Give it the URL and, when the user named a part of the page, section (hero, header, footer, pricing, features, testimonials, faq, cta) - never invent a CSS selector. With neither, it auto-detects the hero; every call also returns `sections`, each other extractable section with a label and a ready selector for a follow-up call. Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Loads the page in a real browser and reads the styles, theme and images it actually shows, on every plan at no extra cost - no need to pass render=true.",
+      "Use when the user asks to rebuild, clone, copy, port, restyle or 'make it look like' part of a real website, or wants a site's section as Tailwind, HTML+CSS, React (JSX) or Vue - or as a file to import into a site builder: framework=elementor for an Elementor template (WordPress), framework=shopify for a Shopify theme section. Give it the URL and, when the user named a part of the page, section (hero, header, footer, pricing, features, testimonials, faq, cta) - never invent a CSS selector. With neither, it auto-detects the hero; every call also returns `sections`, each other extractable section with a label and a ready selector for a follow-up call. Returns a self-contained component with the page's real resolved styles (true colors, fonts, spacing, copy) plus the tokens and assets it uses, so you adapt real values instead of estimating from a screenshot. For jsx/vue, repeated structures collapse into a data array rendered with .map()/v-for; ::before/::after come back as real elements; @keyframes ship in the css field. The `theme` field says which theme the code actually is - sites with a prefers-color-scheme dark variant return the light branch unless you pass theme='dark'; say which you returned. Not for: whole-page scraping, page text, or sites that need a login. Loads the page in a real browser and reads the styles, theme and images it actually shows, on every plan at no extra cost - no need to pass render=true. Large inline SVGs (logo walls, illustrations) come back as hosted <img> files so the code stays small enough to use as-is (inline_svg=true keeps them inline). Hand `code` to the user unchanged instead of rewriting it, and give them `previewUrl`, which shows the returned code rendered as a page.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -92,6 +92,7 @@ const TOOLS = [
         framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue', 'elementor', 'shopify'], description: "The code to generate (default tailwind). 'elementor' returns an importable Elementor template: tell the user to save `code` as a .json file and import it in WordPress under Templates > Saved Templates > Import. 'shopify' returns a theme section: save `code` as sections/<name>.liquid in the theme, then add it from the theme editor. Use the theme code editor's sections folder, not a Custom Liquid block (that block is capped at 50 KB and cannot hold the schema). Both arrive as one styled HTML block (edited as code, not as native widgets), with the section's responsive and hover styles included and its CSS scoped so it cannot clash with the theme. Give the user the file contents complete and unmodified." },
         name: { type: 'string', description: 'Component name for the jsx target (default ExtractedSection). Ignored by tailwind, html and vue. Renaming never re-runs the extraction - it costs 0 credits on a cached section.' },
         theme: { type: 'string', enum: ['light', 'dark'], description: "Which colour scheme to extract (default light). Pass 'dark' when the user is looking at the site in dark mode or asks for the dark version: the page's prefers-color-scheme: dark rules and custom properties become the component itself instead of riding along as dark: variants. Works whether the site expresses its themes as @media (prefers-color-scheme) or as a root attribute/class the CSS is scoped to ([data-theme=dark], html.dark). Sites that switch themes purely in JavaScript cannot be selected this way - you get the page default plus a hint saying so. No extra credits." },
+        inline_svg: { type: 'boolean', description: 'Keep large inline SVGs (logos, illustrations) inline in `code` instead of hosted <img> files. Only when the user needs fully self-contained code: a logo wall can add 50+ KB.' },
         render: RENDER_ARG, fresh: FRESH_ARG, screenshot: SCREENSHOT_ARG
       },
       required: ['url']
@@ -123,6 +124,8 @@ const TOOLS = [
         code: { type: 'string', description: 'The generated, paste-ready component code. For jsx/vue, repeated structures (tiers, cards, list items) are collapsed into a data array rendered with .map()/v-for. For elementor this is the complete template JSON (a .json file); for shopify the complete section file (a .liquid file) - hand either over whole' },
         css: { type: 'string', description: 'Companion CSS: always set for framework=html; for tailwind/jsx/vue it carries the @keyframes the section uses (add to the global stylesheet); null for elementor/shopify, whose file already contains its CSS' },
         tokens: { type: 'object', description: 'Design tokens the extracted section actually uses' },
+        previewUrl: { type: 'string', description: 'A page showing this section rendered from the same extraction (as HTML + CSS), so it looks exactly like the code you got. Give it to the user so they can compare it with the live site' },
+        svgNote: { type: 'string', description: 'Present when large inline SVGs were moved to hosted <img> files - how many and how much smaller the code got' },
         theme: { type: 'string', description: "light | dark: which one the code you just received actually is. Measured from the page, never echoed from your request - so if you asked for a theme the site cannot serve, this reports what you really got. Tell the user which theme they got when it may not match what they see on the site" },
         assets: { description: 'Images/fonts the section references' },
         summary: { description: 'What was extracted, at a glance. styledCoverage (0-100) is the quality signal: the % of elements the cascade found styles for' },
@@ -470,7 +473,7 @@ const TOOLS = [
 
 // Query params a tool may forward to the API, beyond `url`. Anything else in the
 // tool arguments is ignored, so a hallucinated param can't reach the endpoint.
-const FORWARDED_PARAMS = ['format', 'selector', 'section', 'framework', 'name', 'theme', 'fields', 'render', 'fresh', 'screenshot']
+const FORWARDED_PARAMS = ['format', 'selector', 'section', 'framework', 'name', 'theme', 'fields', 'render', 'fresh', 'screenshot', 'inline_svg']
 
 // A selector/section that matched nothing. The API answers 404 (free); the
 // stdio server then falls back to the hero so the agent gets the `sections`
@@ -585,11 +588,13 @@ const INSTRUCTIONS =
   'extract_design_tokens returns values and counts, not layout - not a substitute for extract_code on a rebuild; ' +
   'format=dtcg gives a W3C Design Tokens file. Explain results, do not dump them: extract_brand\'s ' +
   'signals.explanation says whether the colors were declared by the site or inferred (primarySource "usage" = a ' +
-  'guess) - repeat it to the user. Rendered calls accept screenshot=true for a public image URL of the page. ' +
+  'guess) - repeat it to the user. extract_code is the exception to "explain, do not dump": hand its `code` to the user unchanged ' +
+  '(edit only what they asked to change - a rewrite loses the fidelity) and give them `previewUrl`, which shows the returned code rendered as a page. ' +
+  'Rendered calls accept screenshot=true for a public image URL of the page. ' +
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.9.0' },
+  { name: 'miromiro', version: '0.10.0' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

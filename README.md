@@ -99,6 +99,8 @@ All tools are read-only and retry-safe. Identical calls within 24 hours are serv
 
 `extract_code` takes `section` - one of `hero`, `header`, `footer`, `pricing`, `features`, `testimonials`, `faq`, `cta` - so the agent never has to invent a CSS selector for a page it cannot see. Every result also lists the page's other `sections` with ready selectors for follow-up calls. A selector or section that matches nothing falls back to the hero with a `note` saying what the page does have, instead of a dead-end 404.
 
+Every `extract_code` result carries `previewUrl`: a page showing exactly the returned code rendered, so you can compare it with the live site even if your agent adapts the code. Inline SVGs over 2 KB (logo walls, illustrations) come back as permanent hosted `.svg` files behind an `<img>` that keeps their classes, size and color, which keeps the code small enough for the agent to use as-is (astro.build's hero: 73 KB to 14 KB). Pass `inline_svg: true` for fully self-contained code.
+
 ### Prompts (slash commands)
 
 The server exposes three MCP prompts, which clients surface before the first call - Claude Code as `/mcp__miromiro__clone_section`, `/mcp__miromiro__brand_kit` and `/mcp__miromiro__design_tokens`, VS Code as `/miromiro.<name>`, Cursor in its prompt menu:

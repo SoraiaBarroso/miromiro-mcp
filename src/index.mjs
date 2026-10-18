@@ -167,8 +167,9 @@ const TOOLS = [
         },
         fonts: { type: 'array', items: { type: 'string' } },
         typography: { type: 'object', description: 'Fonts split by role: primary, mono' },
-        logo: { type: ['string', 'null'], description: 'Best single logo URL' },
-        logos: { type: 'array', description: 'All icon/logo candidates, tagged by source' },
+        logo: { type: ['string', 'null'], description: "The site's real logo when we found one: the wordmark from its header, read in a real browser and hosted by MiroMiro (permanent URL, safe to embed); otherwise its best declared icon. Show this one to the user." },
+        logoVariants: { type: 'object', description: "The header logo per background: onLight is the file for a light background, onDark for a dark one. A one-color logo gets a recolored copy for the other background; a multi-color one only has its original. null when no header logo was found." },
+        logos: { type: 'array', description: "All logo/icon candidates, tagged by source: header (the wordmark, hosted, with background light|dark it is drawn for), icon, apple-touch-icon, mask-icon, og" },
         ogImage: { type: ['string', 'null'] },
         socials: {
           type: 'array',
@@ -180,7 +181,7 @@ const TOOLS = [
           type: 'object',
           description: "WHY the result looks the way it does - the provenance behind `confidence`. Read `signals.explanation` and tell the user what it says instead of quoting the confidence number, which means nothing to them on its own. `primarySource` is the key field: 'css-var' or 'theme-color' means the site declared these colors and they are its real tokens; 'logo' means they were sampled from its logo; 'usage' means nothing was declared and the colors are a frequency-based GUESS - say so rather than presenting them as the brand's official palette.",
           properties: {
-            primarySource: { type: ['string', 'null'], description: "css-var | theme-color | logo | usage | null - where colors.primary came from, strongest first. 'usage' is inferred, not declared." },
+            primarySource: { type: ['string', 'null'], description: "css-var | theme-color | logo | cta | usage | null - where colors.primary came from (cta = its main buttons as rendered in a browser), strongest first. 'usage' is inferred, not declared." },
             declaredBackground: { type: 'boolean', description: 'The background role came from a declared CSS variable' },
             declaredText: { type: 'boolean', description: 'The text role came from a declared CSS variable' },
             declaredLogo: { type: 'boolean', description: 'A real logo was found, not just an og:image fallback' },

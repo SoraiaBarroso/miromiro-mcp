@@ -597,7 +597,7 @@ const INSTRUCTIONS =
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.11.0' },
+  { name: 'miromiro', version: '0.11.1' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 

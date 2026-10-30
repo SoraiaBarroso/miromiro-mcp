@@ -92,6 +92,8 @@ claude mcp add miromiro -s user \
 | `extract_lottie` | Lottie animation JSON files declared in the page | 3 |
 | `extract_svgs` | Inline SVG code (sanitized, paste-ready) plus external SVG file URLs | 1 |
 | `extract_assets` | Every image URL on a page, tagged by source, with alt text; a direct image-file URL is returned as the single result | 1 |
+| `list_site_pages` | Every page of a website (from the sitemap, else the homepage links): pages with their own layout, `templates` grouping pages that share one layout, and `suggested` (every layout once) | 0 (free on every plan) |
+| `extract_page` | A whole page as code: every section top to bottom in the framework you ask for, plus `pagePreviewUrl` (the page assembled, with a Download HTML button). Paid plans, credit packs and AppSumo only | 30 per page |
 
 All tools are read-only and retry-safe. Identical calls within 24 hours are served from cache for free, and failed calls are never billed.
 
@@ -100,6 +102,12 @@ All tools are read-only and retry-safe. Identical calls within 24 hours are serv
 `extract_code` takes `section` - one of `hero`, `header`, `footer`, `pricing`, `features`, `testimonials`, `faq`, `cta` - so the agent never has to invent a CSS selector for a page it cannot see. Every result also lists the page's other `sections` with ready selectors for follow-up calls. A selector or section that matches nothing falls back to the hero with a `note` saying what the page does have, instead of a dead-end 404.
 
 Every `extract_code` result carries `previewUrl`: a page showing exactly the returned code rendered, so you can compare it with the live site even if your agent adapts the code; `downloadUrl`: the code exactly as returned, as a file in the format you asked for (.jsx, .vue, .html, .elementor.json, .liquid); and `pagePreviewUrl`: every section of that page extracted so far, assembled in order. Agents are told to build on the returned code rather than regenerate it: they make it better to use where they can (clear names, reusable components with props, shorter code without redundant wrappers or duplicated classes, your theme tokens) as long as it renders the same, hand clean code over as it is, and never retype the real layout and styles. Inline SVGs over 2 KB (logo walls, illustrations) come back as permanent hosted `.svg` files behind an `<img>` that keeps their classes, size and color, which keeps the code small enough for the agent to use as-is (astro.build's hero: 73 KB to 14 KB). Pass `inline_svg: true` for fully self-contained code.
+
+### Extracting a whole website
+
+`list_site_pages(url)` scans the site for free and groups its pages by layout, so a blog with 62 posts shows up as one template rather than 62 pages. The agent shows you the list and asks which pages you want before spending anything. It then calls `extract_page(url)` once per chosen page, with optional `framework` (`tailwind` by default, or `html`, `jsx`, `vue`, `elementor`, `shopify`) and `theme` (`light` or `dark`).
+
+`extract_page` costs a flat 30 credits per page, however long the page is, and a page already extracted in the last 24 hours is free. If a page has more sections than fit in one call, the result says `complete: false` and calling again with the same url finishes it at no extra charge. Whole-site extraction needs a paid plan, a credit pack or an AppSumo license: on a free key, `extract_page` returns a 402 (`site_requires_plan`) that the agent relays, and `extract_code` still works for single sections.
 
 ### Prompts (slash commands)
 

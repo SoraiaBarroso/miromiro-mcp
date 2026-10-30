@@ -471,8 +471,84 @@ const TOOLS = [
       required: ['url'],
       additionalProperties: true
     }
+  },
+  {
+    name: 'list_site_pages',
+    title: 'List a website\'s pages',
+    endpoint: 'site/pages',
+    description:
+      "Use when the user wants a whole website (or several of its pages) as code, or asks which pages a site has. Free on every plan (0 credits). Returns every page found (from the sitemap, else the homepage links), split into `pages` with their own layout (home, pricing, about...) and `templates`: groups of pages that share one layout (blog post x62, product x24) with example URLs - extracting one example gives that layout. `suggested` covers every layout once. Show the user the list and ask which pages they want before extracting anything: say how many pages and templates there are and what extract_page costs (`creditsPerPage` credits per page). Never extract every page of a big site unprompted. Then call extract_page once per chosen page. If the result has `premium`, the user's plan does not include whole-site extraction: tell them `premium.reason` and give them `premium.upgradeUrl`; single sections still work with extract_code.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'The website, e.g. linear.app' }
+      },
+      required: ['url']
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string' },
+        source: { type: 'string', description: 'sitemap | links - where the page list came from' },
+        totalPages: { type: 'number' },
+        summary: { type: 'string', description: 'The scan in one sentence - a good opening for your reply' },
+        pages: { type: 'array', description: 'Pages with their own layout', items: { type: 'object', properties: { url: { type: 'string' }, path: { type: 'string' } } } },
+        templates: {
+          type: 'array',
+          description: 'Groups of pages sharing one layout, biggest first. A guess from the URLs - check an example before promising the user the layouts are identical',
+          items: { type: 'object', properties: { name: { type: 'string' }, pattern: { type: 'string' }, count: { type: 'number' }, examples: { type: 'array', items: { type: 'string' } } } }
+        },
+        suggested: { type: 'array', items: { type: 'string' }, description: 'Unique pages + one example per template: every layout on the site once' },
+        creditsPerPage: { type: 'number', description: 'What extract_page charges per page' },
+        premium: { type: 'object', description: 'Present when the plan does not include whole-site extraction: reason (relay it) and upgradeUrl' },
+        truncated: { type: 'boolean' },
+        usage: OUT_USAGE
+      },
+      required: ['url'],
+      additionalProperties: true
+    }
+  },
+  {
+    name: 'extract_page',
+    title: 'Extract a whole page as code',
+    endpoint: 'site/page',
+    description:
+      "Use after list_site_pages, or when the user wants one complete page (not a single section) as code. Returns every section of the page top to bottom as code in the requested framework, plus `pagePreviewUrl`: the whole page assembled, with a Download HTML button. Flat credits per page (see usage.creditsSpent), whatever its length; a page already extracted in the last 24 hours is free. Paid plans only: on a free plan this returns an error explaining why - relay it and point the user to extract_code for single sections. Call it once per page the user picked, one at a time, and tell them how many are left as you go. If `complete` is false, call again with the same url: the done sections come from cache and the page is not charged again. Build on each section's `code` the same way as extract_code's (never regenerate it), and give the user `pagePreviewUrl` for every page.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'The page URL, e.g. linear.app/pricing - one of the pages from list_site_pages' },
+        framework: { type: 'string', enum: ['tailwind', 'html', 'jsx', 'vue', 'elementor', 'shopify'], description: 'The code to generate for every section (default tailwind)' },
+        theme: { type: 'string', enum: ['light', 'dark'], description: 'Which colour scheme to extract (default light)' }
+      },
+      required: ['url']
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string' },
+        framework: { type: 'string' },
+        complete: { type: 'boolean', description: 'False when the page had more sections than fit in one call - call again with the same url (free) to finish' },
+        sectionCount: { type: 'number' },
+        pagePreviewUrl: { type: 'string', description: 'The whole page assembled in order, with a Download HTML button. Give it to the user' },
+        sections: {
+          type: 'array',
+          description: 'Every section, top to bottom',
+          items: { type: 'object', properties: { order: { type: 'number' }, label: { type: 'string' }, selector: { type: 'string' }, code: { type: 'string' }, css: { type: ['string', 'null'] }, previewUrl: { type: 'string' }, downloadUrl: { type: 'string' } } }
+        },
+        failed: { type: 'array', description: 'Sections that could not be extracted, with the reason' },
+        usage: OUT_USAGE,
+        truncation_note: OUT_TRUNCATION
+      },
+      required: ['url'],
+      additionalProperties: true
+    }
   }
 ]
+
+// Where a plan-feature 402 (whole-site extraction on a free key) points the
+// user - same URL the remote server uses for non-ChatGPT clients.
+const PACKS_URL = 'https://miromiro.app/api/dashboard/profile?tab=billing'
 
 // Query params a tool may forward to the API, beyond `url`. Anything else in the
 // tool arguments is ignored, so a hallucinated param can't reach the endpoint.
@@ -593,11 +669,12 @@ const INSTRUCTIONS =
   'signals.explanation says whether the colors were declared by the site or inferred (primarySource "usage" = a ' +
   'guess) - repeat it to the user. extract_code is the exception to "explain, do not dump": build on its `code` instead of regenerating it ' +
   '(make it better to use where it can be - clear names, reusable components with props, shorter code without redundant wrappers or duplicated classes, the user theme tokens - as long as it renders the same: copy every className exactly and never change a value; leave clean code as it is; a rewrite loses the fidelity; Elementor/Shopify files stay unedited) and give them `downloadUrl` (the code as returned, as a file in their format) and `previewUrl` (that code rendered, to compare against). When rebuilding a whole page, extract each section and give them `pagePreviewUrl`: every section extracted so far, assembled in page order, also downloadable. ' +
+  'Whole website: list_site_pages(url) lists every page grouped by layout (free) - show the user and ask which pages, then extract_page(url) per page (paid plans; flat credits per page, every section plus pagePreviewUrl). ' +
   'Rendered calls accept screenshot=true for a public image URL of the page. ' +
   'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
 
 const server = new Server(
-  { name: 'miromiro', version: '0.11.1' },
+  { name: 'miromiro', version: '0.12.0' },
   { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS }
 )
 
@@ -658,6 +735,16 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
     }
     return { content: [{ type: 'text', text: out }], structuredContent: structured }
   } catch (err) {
+    // Whole-site extraction on a plan without it: not a billing failure, a
+    // feature the plan lacks - relay the reason, keep single sections open.
+    // Mirrors the remote server's callTool.
+    if (err.status === 402 && /whole website/i.test(err.apiMessage || '')) {
+      const msg = err.apiMessage.replace(/\s*Upgrade or add credits:.*$/i, '')
+      return {
+        isError: true,
+        content: [{ type: 'text', text: `MiroMiro: ${msg} Upgrade or add credits: ${PACKS_URL}. Tell the user this in plain words, then offer extract_code for the sections they want most (it works on their plan). Do not retry extract_page.` }]
+      }
+    }
     return { isError: true, content: [{ type: 'text', text: String(err.message || err) }] }
   }
 })

@@ -1,0 +1,26 @@
+{
+  "name": "miromiro",
+  "version": "0.8.2",
+  "description": "Turn any live website into paste-ready code (Tailwind, HTML, React, Vue), an Elementor template for WordPress or a Shopify Liquid section, plus its brand colors, fonts, design tokens, SVGs and Lottie.",
+  "keywords": ["design", "design-tokens", "brand", "fonts", "svg", "lottie", "design-to-code", "mcp", "elementor", "wordpress", "shopify", "liquid"],
+  "author": "MiroMiro",
+  "homepage": "https://miromiro.app/api/agents/kimi-code",
+  "license": "MIT",
+  "interface": {
+    "displayName": "MiroMiro",
+    "shortDescription": "Copy any website's design: code, brand, tokens, fonts, assets",
+    "longDescription": "Reads a live website's real HTML and CSS and returns a section as Tailwind, HTML, React or Vue code, an Elementor template or a Shopify section, plus its brand colors, fonts, design tokens, images, SVG icons and Lottie files. Sign in once in the browser; a free account includes monthly credits, no card.",
+    "developerName": "MiroMiro",
+    "websiteURL": "https://miromiro.app"
+  },
+  "skills": [
+    "./skills/clone-section",
+    "./skills/match-brand",
+    "./skills/extract-assets",
+    "./skills/elementor-section",
+    "./skills/shopify-section"
+  ],
+  "mcpServers": {
+    "miromiro": { "url": "https://miromiro.app/mcp" }
+  }
+}

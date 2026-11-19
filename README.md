@@ -53,6 +53,8 @@ Paste that URL into any client that accepts a remote MCP server. On first use it
 - Step-by-step pages for each agent: https://miromiro.app/api/agents/chatgpt (swap the last part for `claude`, `claude-code`, `codex`, `cursor`, `grok-bot`, `muse` or `openai-dots`).
 - **Raw API key instead of OAuth:** append `?access_key=mm_live_...` to the URL, or send it as an `Authorization: Bearer` header.
 
+In clients that show MCP Apps (Claude web/desktop, Cursor, VS Code), the remote server's `extract_code`, `extract_brand`, `extract_design_tokens` and `extract_svgs` results also open as a visual card: the section rendered, the logo and colors, the tokens, the icons. The local npm server below returns the same data without the card.
+
 ## Local server (npm)
 
 Prefer a local stdio process with the key in an env var? Get a free key at [miromiro.app/api/dashboard](https://miromiro.app/api/dashboard), then:

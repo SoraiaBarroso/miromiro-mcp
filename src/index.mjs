@@ -671,7 +671,7 @@ const INSTRUCTIONS =
   '(make it better to use where it can be - clear names, reusable components with props, shorter code without redundant wrappers or duplicated classes, the user theme tokens - as long as it renders the same: copy every className exactly and never change a value; leave clean code as it is; a rewrite loses the fidelity; Elementor/Shopify files stay unedited) and give them `downloadUrl` (the code as returned, as a file in their format) and `previewUrl` (that code rendered, to compare against). When rebuilding a whole page, extract each section and give them `pagePreviewUrl`: every section extracted so far, assembled in page order, also downloadable. ' +
   'Whole website: list_site_pages(url) lists every page grouped by layout (free) - show the user and ask which pages, then extract_page(url) per page (paid plans; flat credits per page, every section plus pagePreviewUrl). ' +
   'Rendered calls accept screenshot=true for a public image URL of the page. ' +
-  'fresh=true bypasses the 24h cache. Every result carries `usage` (credits left; `packCredits` = never-expiring pack balance when the account holds one).'
+  'fresh=true bypasses the 24h cache. Every result carries `usage` (`remaining` = every credit left, credit pack included; `packCredits` = the never-expiring pack part when the account holds one).'
 
 const server = new Server(
   { name: 'miromiro', version: '0.12.0' },

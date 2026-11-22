@@ -88,6 +88,7 @@ claude mcp add miromiro -s user \
 | `extract_code` | A section of a live page as a paste-ready component (Tailwind, HTML+CSS, JSX or Vue) or an importable Elementor template / Shopify section, plus the tokens it uses - start here to rebuild real UI | 10 |
 | `extract_brand` | Named color roles (primary/accent/background/text), palette, fonts split by role, logo, social profiles, a 0-1 confidence score, and `signals` explaining where the colors came from (declared tokens vs inferred) | 10 |
 | `extract_design_tokens` | Full token system with usage counts; `format: css` or `tailwind` for paste-ready output, `dtcg` for a W3C Design Tokens file (Style Dictionary / Figma variables) | 10 |
+| `extract_design_md` | The site as a DESIGN.md - the open design-system file Claude Code, Cursor, Codex, Google Stitch and Claude Design read to build in its style. Built only from what the page declares; save `designMd` as DESIGN.md | 20 |
 | `extract_fonts` | Every font file and family the site loads, with weights, formats, and file URLs | 5 |
 | `extract_videos` | Video files, `og:video`, and player embeds (YouTube, Vimeo, Wistia, Loom), tagged by source; a direct video-file URL is returned as the single result, and a YouTube/Vimeo/TikTok/Dailymotion/Loom video URL returns its player embed without a fetch | 1 |
 | `extract_audio` | Audio files, `og:audio`, and podcast enclosures, tagged by source; a direct audio-file URL is returned as the single result | 1 |

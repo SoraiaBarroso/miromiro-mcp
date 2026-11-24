@@ -242,11 +242,12 @@ const TOOLS = [
     title: "Get a site's DESIGN.md",
     endpoint: 'design-md',
     description:
-      "Use when the user wants a site's DESIGN.md - the open design-system file (Google's format) that coding agents such as Claude Code, Cursor, Codex, Google Stitch and Claude Design read to build in a given style - or asks to make their project, agent or app 'follow', 'use' or 'match' a website's design. Returns one markdown file: YAML front matter with the color, typography, rounded, spacing and component tokens, then Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components and Do's and Don'ts. Built only from what the page declares; values the page does not give are left out, never guessed. Save `designMd` as DESIGN.md in the project root exactly as returned. Not for: rebuilding a section (use extract_code) or every token with usage counts (use extract_design_tokens). 20 credits.",
+      "Use when the user wants a site's DESIGN.md - the open design-system file (Google's format) that coding agents such as Claude Code, Cursor, Codex, Google Stitch and Claude Design read to build in a given style - or asks to make their project, agent or app 'follow', 'use' or 'match' a website's design. Returns one markdown file: YAML front matter with the color, typography, rounded, spacing and component tokens (buttons with their hover and pressed states, cards, inputs), then Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Responsive and Do's and Don'ts. Measured on the live page in a real browser (headings, text colors, buttons, phone sizes) plus its stylesheets; values the page does not give are left out, never guessed. Save `designMd` as DESIGN.md in the project root exactly as returned. Not for: rebuilding a section (use extract_code) or every token with usage counts (use extract_design_tokens). 20 credits.",
     inputSchema: {
       type: 'object',
       properties: {
         url: { type: 'string', description: 'The website URL' },
+        theme: { type: 'string', enum: ['light', 'dark'], description: "Which colour scheme to describe (default light). Pass 'dark' when the user wants the site's dark theme: the page is read with prefers-color-scheme: dark. A site without a dark theme returns its only theme, and `theme` + `note` say so. No extra credits." },
         render: RENDER_ARG, fresh: FRESH_ARG
       },
       required: ['url']
@@ -256,7 +257,8 @@ const TOOLS = [
       properties: {
         url: { type: 'string' },
         designMd: { type: 'string', description: 'The complete DESIGN.md file. Save it as DESIGN.md as-is.' },
-        note: { type: 'string', description: 'Present when only half the page could be read (the brand or the stylesheet): says which parts the file leaves out' },
+        theme: { type: 'string', description: 'light | dark: the theme the file describes' },
+        note: { type: 'string', description: 'Present when only half the page could be read (the brand or the stylesheet), or when theme=dark was asked for a site with no dark theme: says what the file leaves out' },
         usage: OUT_USAGE
       },
       required: ['url'],

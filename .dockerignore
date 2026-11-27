@@ -1,0 +1,8 @@
+node_modules
+.git
+.tools
+assets
+skills
+skills-zips
+openai-plugin
+*.zip

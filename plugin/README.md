@@ -9,6 +9,13 @@ The plugin connects Claude Code to the remote MiroMiro MCP server (`https://miro
 You sign in with your MiroMiro account the first time a tool runs (OAuth); no API key is stored
 on your machine. The free plan includes 300 credits a month.
 
+## Data it sends
+
+When a tool runs, the plugin sends MiroMiro the public URL you asked about and the tool's
+options (such as the section, framework or theme). MiroMiro loads that page on its servers and
+returns the result. Nothing else from your project files or your conversation is sent, and the
+plugin runs no code on your machine.
+
 ## Skills
 
 - `clone-section`: rebuild a section of a live site as component code

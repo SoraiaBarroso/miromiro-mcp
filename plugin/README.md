@@ -1,11 +1,11 @@
-# MiroMiro plugin for Claude Code
+# MiroMiro plugin for Claude
 
 Turn any live website into code your project can use. MiroMiro reads a public page the way a
 designer's inspector does and gives Claude the real values behind it: a section as Tailwind,
 HTML, React or Vue, an Elementor template for WordPress or a Shopify Liquid section, plus the
 site's brand colors, fonts, design tokens, SVGs, images and Lottie animations.
 
-The plugin connects Claude Code to the remote MiroMiro MCP server (`https://miromiro.app/mcp`).
+The plugin connects Claude to the remote MiroMiro MCP server (`https://miromiro.app/mcp`).
 You sign in with your MiroMiro account the first time a tool runs (OAuth); no API key is stored
 on your machine. The free plan includes 300 credits a month.
 
@@ -26,10 +26,16 @@ plugin runs no code on your machine.
 
 ## Install
 
+In Claude Code:
+
 ```
 claude plugin marketplace add SoraiaBarroso/miromiro-mcp
 claude plugin install miromiro@miromiro
 ```
 
-Docs: https://miromiro.app/api/mcp. Privacy policy: https://miromiro.app/api/legal/privacy.
-Terms: https://miromiro.app/api/legal/terms.
+## Links
+
+- Docs: https://miromiro.app/api/mcp
+- Support: https://miromiro.app/contact
+- Privacy policy: https://miromiro.app/api/legal/privacy
+- Terms: https://miromiro.app/api/legal/terms

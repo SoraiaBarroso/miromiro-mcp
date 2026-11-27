@@ -1,6 +1,7 @@
 {
   "name": "miromiro",
-  "version": "0.8.5",
+  "displayName": "MiroMiro",
+  "version": "0.8.6",
   "description": "Turn any live website into paste-ready code (Tailwind, HTML, React, Vue), an Elementor template for WordPress or a Shopify Liquid section, plus its brand colors, fonts, design tokens, SVGs and Lottie.",
   "icon": "./assets/icon.svg",
   "author": {
@@ -9,6 +10,9 @@
   },
   "homepage": "https://miromiro.app/api/mcp",
   "privacyPolicyUrl": "https://miromiro.app/api/legal/privacy",
+  "termsOfServiceUrl": "https://miromiro.app/api/legal/terms",
+  "documentationUrl": "https://miromiro.app/api/mcp",
+  "supportUrl": "https://miromiro.app/contact",
   "repository": "https://github.com/SoraiaBarroso/miromiro-mcp",
   "license": "MIT",
   "keywords": [

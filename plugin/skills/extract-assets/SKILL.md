@@ -1,8 +1,7 @@
 ---
-name: extract-assets
-description: Pull media off a live page - images, inline SVG icons and logos, videos, audio, or Lottie animation JSON. Use when the user asks to grab, download, recover, list, or find assets on a website.
-homepage: https://miromiro.app/api/docs
-metadata: {"openclaw": {"emoji": "🖼️", "homepage": "https://miromiro.app/api/docs"}}
+name: "extract-assets"
+description: "Pull media off a live page - images, inline SVG icons and logos, videos, audio, or Lottie animation JSON. Use when the user asks to grab, download, recover, list, or find assets on a website."
+homepage: "https://miromiro.app/api/docs"
 ---
 
 # Recover assets from a page

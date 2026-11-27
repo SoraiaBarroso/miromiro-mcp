@@ -1,8 +1,7 @@
 ---
-name: elementor-section
-description: Turn a section of any live website into an Elementor template the user imports into WordPress. Use when the user builds with WordPress or Elementor and wants a hero, pricing table, header, footer, features, testimonials, FAQ or CTA "like <url>" on their own site, or asks for an Elementor template or JSON from a website.
-homepage: https://miromiro.app/api/html-to-elementor-api
-metadata: {"openclaw": {"emoji": "🧱", "homepage": "https://miromiro.app/api/html-to-elementor-api"}}
+name: "elementor-section"
+description: "Turn a section of any live website into an Elementor template the user imports into WordPress. Use when the user builds with WordPress or Elementor and wants a hero, pricing table, header, footer, features, testimonials, FAQ or CTA \"like <url>\" on their own site, or asks for an Elementor template or JSON from a website."
+homepage: "https://miromiro.app/api/html-to-elementor-api"
 ---
 
 # Website section → Elementor template
@@ -20,8 +19,8 @@ with `url`, `framework: "elementor"` and, when the user named a part of the page
 `faq`, `cta`. Omit it for the hero. Never guess a CSS selector: the response lists the
 page's other sections in `sections`, each with a ready `selector` for a second call.
 
-A call costs 10 credits. The page is always loaded in a real browser, so never pass
-`render`.
+A call costs 10 credits. The page is always loaded in a real browser, so leave
+`render` out.
 
 ## 2. Hand over the file
 

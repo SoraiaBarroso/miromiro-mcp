@@ -31,7 +31,7 @@ adapt real values instead of guessing from a screenshot.
 ## Picking the section
 
 When the user names a part of the page ("their pricing table", "the footer", "the nav"),
-pass it as `section`: one of `hero`, `header`, `footer`, `pricing`, `features`,
+send it as the `section` argument, one of `hero`, `header`, `footer`, `pricing`, `features`,
 `testimonials`, `faq`, `cta`. MiroMiro finds that block on the page itself, so you never
 have to see the markup. Never invent a CSS selector like `.pricing` - a selector that
 matches nothing falls back to the hero with a `note`, and the guess still costs a call.
@@ -46,7 +46,7 @@ it there and call again with that `selector`.
 Match the user's project, don't default blindly:
 
 - `tailwind` (default) — Tailwind utility classes in the markup
-- `jsx` — a React component; pass `name` to set the component name. Repeated structures
+- `jsx` — a React component; the `name` argument sets the component name. Repeated structures
   (tiers, cards, list items) come back as one template plus a `const items = […]` array
   rendered with `.map()` — use the data array, don't re-expand it.
 - `vue` — a single-file component with `<script setup>`; `name` applies here too, and
@@ -74,17 +74,17 @@ component.
 
 ## Light or dark
 
-Pass `theme: "dark"` when the user is looking at the site in dark mode or asks for the
+Set `theme` to `dark` when the user is looking at the site in dark mode or asks for the
 dark version; the response's `theme` field reports which one you actually got, so tell the
 user when it differs from what they see. Sites that switch themes purely in JavaScript
 cannot be selected this way.
 
 ## When a result is not what the user meant
 
-`extract_code` always loads the page in a real browser, so never pass `render`. If the
+`extract_code` always loads the page in a real browser, so leave `render` out. If the
 section you got is not the one the user meant, find it in `sections` and call again with its
 `selector`. If the response says the site refused the browser, tell the user that site
-cannot be extracted. Pass `screenshot: true` for a URL of the rendered page, useful to show
+cannot be extracted. Set `screenshot` to `true` for a URL of the rendered page, useful to show
 the user what was extracted.
 
 ## After you get the code

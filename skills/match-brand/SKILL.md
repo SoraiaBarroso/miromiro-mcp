@@ -92,7 +92,7 @@ color candidate, so `primarySource: "usage"` and `declaredLogo: true` can both b
 
 `extract_fonts` is the specialist when the question is only about type. It resolves the
 full cascade and returns every `@font-face` file with family, weight, style and format,
-plus Google Fonts links and preloads. Pass `fields: "families"` for just the grouped
+plus Google Fonts links and preloads. Set `fields` to `families` for just the grouped
 per-family summary when you do not need individual file URLs.
 
 Note that knowing which font a site loads is not a license to use it. Commercial fonts

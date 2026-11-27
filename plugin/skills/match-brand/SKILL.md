@@ -1,8 +1,7 @@
 ---
-name: match-brand
-description: Build new UI in the visual style of an existing site. Use when the user says "in the style of <url>", "match our brand", "use their colors and fonts", asks what fonts or colors a website uses, or wants a theme, palette, tailwind config, CSS variables or design tokens derived from a real website rather than a section's markup.
-homepage: https://miromiro.app/api/website-color-palette-api
-metadata: {"openclaw": {"emoji": "🎨", "homepage": "https://miromiro.app/api/website-color-palette-api"}}
+name: "match-brand"
+description: "Build new UI in the visual style of an existing site. Use when the user says \"in the style of <url>\", \"match our brand\", \"use their colors and fonts\", asks what fonts or colors a website uses, or wants a theme, palette, tailwind config, CSS variables or design tokens derived from a real website rather than a section's markup."
+homepage: "https://miromiro.app/api/website-color-palette-api"
 ---
 
 # Build in the style of a real site
@@ -78,7 +77,7 @@ color candidate, so `primarySource: "usage"` and `declaredLogo: true` can both b
 
 `extract_fonts` is the specialist when the question is only about type. It resolves the
 full cascade and returns every `@font-face` file with family, weight, style and format,
-plus Google Fonts links and preloads. Pass `fields: "families"` for just the grouped
+plus Google Fonts links and preloads. Set `fields` to `families` for just the grouped
 per-family summary when you do not need individual file URLs.
 
 Note that knowing which font a site loads is not a license to use it. Commercial fonts

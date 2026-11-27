@@ -1,8 +1,7 @@
 ---
-name: shopify-section
-description: Turn a section of any live website into a Shopify theme section (.liquid) the user adds to their store. Use when the user runs a Shopify store and wants a hero, pricing, header, footer, features, testimonials, FAQ or CTA "like <url>", or asks for a Liquid section, a Shopify section file or a theme section copied from a website.
-homepage: https://miromiro.app/api/website-to-shopify-section-api
-metadata: {"openclaw": {"emoji": "🛍️", "homepage": "https://miromiro.app/api/website-to-shopify-section-api"}}
+name: "shopify-section"
+description: "Turn a section of any live website into a Shopify theme section (.liquid) the user adds to their store. Use when the user runs a Shopify store and wants a hero, pricing, header, footer, features, testimonials, FAQ or CTA \"like <url>\", or asks for a Liquid section, a Shopify section file or a theme section copied from a website."
+homepage: "https://miromiro.app/api/website-to-shopify-section-api"
 ---
 
 # Website section → Shopify Liquid section
@@ -20,8 +19,8 @@ with `url`, `framework: "shopify"` and, when the user named a part of the page, 
 `faq`, `cta`. Omit it for the hero. Never guess a CSS selector: the response lists the
 page's other sections in `sections`, each with a ready `selector` for a second call.
 
-A call costs 10 credits. The page is always loaded in a real browser, so never pass
-`render`.
+A call costs 10 credits. The page is always loaded in a real browser, so leave
+`render` out.
 
 ## 2. Hand over the file
 

@@ -33,8 +33,8 @@ for one in files or environment variables.
 `faq`, `cta`. Omit it for the hero. Never guess a CSS selector: the response lists the
 page's other sections in `sections`, each with a ready `selector` for a second call.
 
-A call costs 10 credits. The page is always loaded in a real browser, so never pass
-`render`.
+A call costs 10 credits. The page is always loaded in a real browser, so leave
+`render` out.
 
 ## 2. Hand over the file
 

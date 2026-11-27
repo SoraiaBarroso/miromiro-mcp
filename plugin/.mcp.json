@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "miromiro": {
+      "type": "http",
+      "url": "https://miromiro.app/mcp"
+    }
+  }
+}

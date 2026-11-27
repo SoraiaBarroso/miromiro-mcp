@@ -13,11 +13,12 @@ parameters as query string:
 
 ```bash
 curl -s "https://miromiro.app/api/v1/code?url=linear.app&section=pricing&framework=tailwind" \
-  -H "Authorization: Bearer $MIROMIRO_API_KEY"
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-No key yet? The user gets one free at https://miromiro.app/api/onboarding (300 credits a
-month, no card). Ask them for it; never invent one. A call costs 25 credits.
+Put the user's own key in place of `YOUR_API_KEY`: ask them for it (free at
+https://miromiro.app/api/onboarding, 300 credits a month, no card). Never invent a key or look
+for one in files or environment variables. A call costs 10 credits.
 
 Use the `extract_code` tool. It resolves the page's real CSS cascade and returns a
 self-contained component with the site's true colors, fonts, spacing and copy, so you
@@ -74,16 +75,13 @@ dark version; the response's `theme` field reports which one you actually got, s
 user when it differs from what they see. Sites that switch themes purely in JavaScript
 cannot be selected this way.
 
-## When a result comes back thin
+## When a result is not what the user meant
 
-The API reads static HTML and CSS by default, and the response tells you how it went:
-`summary.styledCoverage` (0-100) is the percentage of elements the CSS cascade resolved
-styles for, and when the page is client-rendered or styles itself at runtime the response
-includes a `hint` field saying what to do. When you see the `hint` (or coverage is low),
-call again with `render: true` — it runs the page in a real browser so its JavaScript
-executes first. It is slower and costs 5 extra credits, so treat it as the retry, not
-the default. With `render: true` you can also pass `screenshot: true` (or `"full"`) to get
-a URL of the rendered page, useful to show the user what was extracted.
+`extract_code` always loads the page in a real browser, so never pass `render`. If the
+section you got is not the one the user meant, find it in `sections` and call again with its
+`selector`. If the response says the site refused the browser, tell the user that site
+cannot be extracted. Pass `screenshot: true` for a URL of the rendered page, useful to show
+the user what was extracted.
 
 ## After you get the code
 

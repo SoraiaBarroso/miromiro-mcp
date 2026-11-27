@@ -12,12 +12,13 @@ below. **Without them** (OpenClaw and other agents) call the REST API: `/v1/bran
 `extract_brand`, `/v1/extract` is `extract_design_tokens`, `/v1/fonts` is `extract_fonts`.
 
 ```bash
-curl -s "https://miromiro.app/api/v1/brand?url=linear.app" -H "Authorization: Bearer $MIROMIRO_API_KEY"
-curl -s "https://miromiro.app/api/v1/extract?url=linear.app&format=css" -H "Authorization: Bearer $MIROMIRO_API_KEY"
+curl -s "https://miromiro.app/api/v1/brand?url=linear.app" -H "Authorization: Bearer YOUR_API_KEY"
+curl -s "https://miromiro.app/api/v1/extract?url=linear.app&format=css" -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-No key yet? The user gets one free at https://miromiro.app/api/onboarding (300 credits a
-month, no card). Ask them for it; never invent one. Brand costs 15 credits, tokens 10, fonts 5.
+Put the user's own key in place of `YOUR_API_KEY`: ask them for it (free at
+https://miromiro.app/api/onboarding, 300 credits a month, no card). Never invent a key or look
+for one in files or environment variables. Brand costs 10 credits, tokens 10, fonts 5.
 
 Two tools cover this, and picking the right one matters more than it looks.
 

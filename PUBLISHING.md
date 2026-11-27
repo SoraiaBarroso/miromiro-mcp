@@ -40,7 +40,7 @@ Then smoke-test as a real user (in any directory OUTSIDE this repo, so the
 local folder can't shadow the registry copy):
 
 ```powershell
-claude mcp add miromiro -s user --env MIROMIRO_API_KEY=mm_live_yourkey -- npx -y miromiro-mcp
+claude mcp add miromiro -s user --env MIROMIRO_API_KEY=YOUR_API_KEY -- npx -y miromiro-mcp
 claude mcp list      # look for "miromiro ... ✓ Connected"
 claude               # then: "Use the miromiro server to get the brand colors of stripe.com"
 ```
@@ -72,3 +72,18 @@ package.json when bumping — it's what MCP clients display.
 - 2FA: if the npm account has 2FA set to "authorization and writes", `npm publish`
   prompts for an OTP — normal, type the code from the authenticator app.
 - The name `miromiro-mcp` was confirmed free on 2026-07-15.
+
+## Claude Code plugin (`plugin/`)
+
+The Claude directory scans every file in the folder that holds `.claude-plugin/plugin.json`.
+At the repo root that included `src/` (the npm server reads `MIROMIRO_API_KEY` from the
+environment), and the directory refuses plugins that read a credential from the user's
+machine. So the plugin lives in `plugin/`: manifest, `.mcp.json` (remote server, OAuth, no key),
+skills, README, LICENSE, icon. The marketplace entry points at `./plugin`, and the directory
+submission uses Plugin path `plugin`.
+
+`skills/` at the root stays the source of truth (ClawHub, Cursor, Kimi). After editing a skill,
+or `.mcp.json`, run `node scripts/sync-plugin.mjs`: it copies them into `plugin/` without the
+OpenClaw `primaryEnv` field and fails if anything in `plugin/` names the API key. Then bump the
+version in `plugin/.claude-plugin/plugin.json` (an unchanged version is ignored as "already at
+the latest version") and check with `claude plugin validate ./plugin`.

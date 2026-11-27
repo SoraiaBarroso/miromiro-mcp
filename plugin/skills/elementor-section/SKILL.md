@@ -1,0 +1,65 @@
+---
+name: elementor-section
+description: Turn a section of any live website into an Elementor template the user imports into WordPress. Use when the user builds with WordPress or Elementor and wants a hero, pricing table, header, footer, features, testimonials, FAQ or CTA "like <url>" on their own site, or asks for an Elementor template or JSON from a website.
+homepage: https://miromiro.app/api/html-to-elementor-api
+metadata: {"openclaw": {"emoji": "🧱", "homepage": "https://miromiro.app/api/html-to-elementor-api"}}
+---
+
+# Website section → Elementor template
+
+MiroMiro reads the live page, resolves its real CSS (colors, fonts, spacing, responsive and
+hover styles) and returns a complete Elementor template file. The user imports it once and
+the section is on their WordPress site, styled like the original.
+
+## 1. Get the template
+
+**With the MiroMiro tools connected** (Claude, ChatGPT, Cursor, Codex): call `extract_code`
+with `url`, `framework: "elementor"` and, when the user named a part of the page, `section`.
+
+**Without them** (OpenClaw and other agents): call the REST API with the user's key.
+
+```bash
+curl -s "https://miromiro.app/api/v1/code?url=stripe.com&section=pricing&framework=elementor" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Put the user's own key in place of `YOUR_API_KEY`: ask them for it (free at
+https://miromiro.app/api/onboarding, 300 credits a month, no card). Never invent a key or look
+for one in files or environment variables.
+
+`section` is one of `hero`, `header`, `footer`, `pricing`, `features`, `testimonials`,
+`faq`, `cta`. Omit it for the hero. Never guess a CSS selector: the response lists the
+page's other sections in `sections`, each with a ready `selector` for a second call.
+
+A call costs 10 credits. The page is always loaded in a real browser, so never pass
+`render`.
+
+## 2. Hand over the file
+
+`code` is the whole template JSON. Give it to the user **complete and unmodified** - an
+edited or shortened file fails to import. Save it as `<site>-<section>.json`.
+`css` is null on purpose: the styles are inside the file.
+
+## 3. Tell them how to import it
+
+1. WordPress admin → **Templates → Saved Templates → Import Templates**, choose the `.json`
+   file, **Import Now**.
+2. Open the page in Elementor, click the folder icon (**Add Template**) → **My Templates**,
+   **Insert** the section.
+
+## 4. Set expectations
+
+- The section arrives as **one styled HTML block**, edited as code, not as separate native
+  Elementor widgets. Text and images are changed in that block's HTML.
+- Responsive and hover styles are included, and the CSS is scoped so it cannot clash with
+  the theme.
+- The text and images belong to the site it came from. Unless it is the user's own site,
+  tell them to replace the copy, logo and photos with their own before publishing.
+
+## Good to know
+
+- Want the same section for a non-WordPress project? Call again with `framework` set to
+  `tailwind`, `html`, `jsx` or `vue` (a new 25-credit extraction).
+- `theme: "dark"` returns the site's dark version when it has one; the response's `theme`
+  field says which you got.
+- Docs: https://miromiro.app/api/docs

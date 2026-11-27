@@ -31,7 +31,7 @@ no card).
 ## Skills for OpenClaw and other agents
 
 The same skills live in [`skills/`](skills). Each one uses the MiroMiro MCP tools when they
-are connected and otherwise calls the REST API with `MIROMIRO_API_KEY` (free key, 300
+are connected and otherwise calls the REST API with the user's own key (free, 300
 credits a month: https://miromiro.app/api/onboarding).
 
 ## Quick start: remote server (nothing to install)

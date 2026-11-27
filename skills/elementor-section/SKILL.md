@@ -20,18 +20,19 @@ with `url`, `framework: "elementor"` and, when the user named a part of the page
 
 ```bash
 curl -s "https://miromiro.app/api/v1/code?url=stripe.com&section=pricing&framework=elementor" \
-  -H "Authorization: Bearer $MIROMIRO_API_KEY"
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-No key yet? The user gets one free at https://miromiro.app/api/onboarding (300 credits a
-month, no card). Ask them for it; never invent one.
+Put the user's own key in place of `YOUR_API_KEY`: ask them for it (free at
+https://miromiro.app/api/onboarding, 300 credits a month, no card). Never invent a key or look
+for one in files or environment variables.
 
 `section` is one of `hero`, `header`, `footer`, `pricing`, `features`, `testimonials`,
 `faq`, `cta`. Omit it for the hero. Never guess a CSS selector: the response lists the
 page's other sections in `sections`, each with a ready `selector` for a second call.
 
-A call costs 25 credits. If the result is thin or carries a `hint`, retry the same URL once
-with `render=true` (+5 credits) so the page's JavaScript runs first. Never render first.
+A call costs 10 credits. The page is always loaded in a real browser, so never pass
+`render`.
 
 ## 2. Hand over the file
 

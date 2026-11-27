@@ -8,17 +8,7 @@ metadata: {"openclaw": {"emoji": "🧩", "homepage": "https://miromiro.app/api/w
 # Rebuild a section from a live site
 
 **With the MiroMiro tools connected** (Claude, ChatGPT, Cursor, Codex) use `extract_code` as
-below. **Without them** (OpenClaw and other agents) call the REST API with the same
-parameters as query string:
-
-```bash
-curl -s "https://miromiro.app/api/v1/code?url=linear.app&section=pricing&framework=tailwind" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Put the user's own key in place of `YOUR_API_KEY`: ask them for it (free at
-https://miromiro.app/api/onboarding, 300 credits a month, no card). Never invent a key or look
-for one in files or environment variables. A call costs 10 credits.
+below. A call costs 10 credits.
 
 Use the `extract_code` tool. It resolves the page's real CSS cascade and returns a
 self-contained component with the site's true colors, fonts, spacing and copy, so you

@@ -8,16 +8,7 @@ metadata: {"openclaw": {"emoji": "🖼️", "homepage": "https://miromiro.app/ap
 # Recover assets from a page
 
 **With the MiroMiro tools connected** (Claude, ChatGPT, Cursor, Codex) use the tools in the
-table. **Without them** (OpenClaw and other agents) call the matching REST endpoint:
-`/v1/images`, `/v1/svg`, `/v1/videos`, `/v1/audio`, `/v1/lottie`.
-
-```bash
-curl -s "https://miromiro.app/api/v1/svg?url=github.com" -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Put the user's own key in place of `YOUR_API_KEY`: ask them for it (free at
-https://miromiro.app/api/onboarding, 300 credits a month, no card). Never invent a key or look
-for one in files or environment variables. Images, SVGs, videos and audio cost 1 credit; Lottie 3.
+table. Images, SVGs, videos and audio cost 1 credit; Lottie 3.
 
 One tool per asset kind. All of them take a `url` and return resolved URLs tagged by where
 they were found.

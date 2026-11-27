@@ -8,7 +8,10 @@ metadata: {"openclaw": {"emoji": "🎨", "homepage": "https://miromiro.app/api/w
 # Build in the style of a real site
 
 **With the MiroMiro tools connected** (Claude, ChatGPT, Cursor, Codex) use the tools named
-below. **Without them** (OpenClaw and other agents) call the REST API: `/v1/brand` is
+below. Brand costs 10 credits, tokens 10, fonts 5.
+
+<!-- rest-fallback: OpenClaw/REST only, left out of the Claude plugin copy -->
+**Without them** (OpenClaw and other agents) call the REST API: `/v1/brand` is
 `extract_brand`, `/v1/extract` is `extract_design_tokens`, `/v1/fonts` is `extract_fonts`.
 
 ```bash
@@ -18,7 +21,8 @@ curl -s "https://miromiro.app/api/v1/extract?url=linear.app&format=css" -H "Auth
 
 Put the user's own key in place of `YOUR_API_KEY`: ask them for it (free at
 https://miromiro.app/api/onboarding, 300 credits a month, no card). Never invent a key or look
-for one in files or environment variables. Brand costs 10 credits, tokens 10, fonts 5.
+for one in files or environment variables.
+<!-- /rest-fallback -->
 
 Two tools cover this, and picking the right one matters more than it looks.
 

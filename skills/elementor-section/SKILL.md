@@ -16,6 +16,7 @@ the section is on their WordPress site, styled like the original.
 **With the MiroMiro tools connected** (Claude, ChatGPT, Cursor, Codex): call `extract_code`
 with `url`, `framework: "elementor"` and, when the user named a part of the page, `section`.
 
+<!-- rest-fallback: OpenClaw/REST only, left out of the Claude plugin copy -->
 **Without them** (OpenClaw and other agents): call the REST API with the user's key.
 
 ```bash
@@ -26,6 +27,7 @@ curl -s "https://miromiro.app/api/v1/code?url=stripe.com&section=pricing&framewo
 Put the user's own key in place of `YOUR_API_KEY`: ask them for it (free at
 https://miromiro.app/api/onboarding, 300 credits a month, no card). Never invent a key or look
 for one in files or environment variables.
+<!-- /rest-fallback -->
 
 `section` is one of `hero`, `header`, `footer`, `pricing`, `features`, `testimonials`,
 `faq`, `cta`. Omit it for the hero. Never guess a CSS selector: the response lists the

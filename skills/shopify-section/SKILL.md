@@ -16,6 +16,7 @@ theme and adds it to any page from the theme editor.
 **With the MiroMiro tools connected** (Claude, ChatGPT, Cursor, Codex): call `extract_code`
 with `url`, `framework: "shopify"` and, when the user named a part of the page, `section`.
 
+<!-- rest-fallback: OpenClaw/REST only, left out of the Claude plugin copy -->
 **Without them** (OpenClaw and other agents): call the REST API with the user's key.
 
 ```bash
@@ -26,6 +27,7 @@ curl -s "https://miromiro.app/api/v1/code?url=allbirds.com&section=hero&framewor
 Put the user's own key in place of `YOUR_API_KEY`: ask them for it (free at
 https://miromiro.app/api/onboarding, 300 credits a month, no card). Never invent a key or look
 for one in files or environment variables.
+<!-- /rest-fallback -->
 
 `section` is one of `hero`, `header`, `footer`, `pricing`, `features`, `testimonials`,
 `faq`, `cta`. Omit it for the hero. Never guess a CSS selector: the response lists the

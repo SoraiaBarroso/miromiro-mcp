@@ -19,7 +19,11 @@ rmSync(join(plugin, 'skills'), { recursive: true, force: true })
 for (const name of readdirSync(join(root, 'skills'))) {
   const src = join(root, 'skills', name, 'SKILL.md')
   if (!existsSync(src)) continue
-  const text = readFileSync(src, 'utf8').replace(/,\s*"primaryEnv":\s*"[^"]*"/g, '')
+  // The REST fallback (curl + "ask the user for their key") is for agents without the tools;
+  // the plugin always has them (remote server, OAuth), so its copy leaves that block out.
+  const text = readFileSync(src, 'utf8')
+    .replace(/,\s*"primaryEnv":\s*"[^"]*"/g, '')
+    .replace(/\r?\n<!-- rest-fallback[^>]*-->[\s\S]*?<!-- \/rest-fallback -->\r?\n/g, '')
   mkdirSync(join(plugin, 'skills', name), { recursive: true })
   writeFileSync(join(plugin, 'skills', name, 'SKILL.md'), text)
 }
@@ -29,11 +33,13 @@ cpSync(join(root, 'LICENSE'), join(plugin, 'LICENSE'))
 mkdirSync(join(plugin, 'assets'), { recursive: true })
 cpSync(join(root, 'assets', 'icon.svg'), join(plugin, 'assets', 'icon.svg'))
 
-// Guard: nothing in the plugin folder may name the env var the directory refused.
+// Guard: nothing in the plugin folder may read or ask for a key (the directory refuses plugins
+// that use a credential from the user's machine).
 const walk = dir => readdirSync(dir).flatMap(f => statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : [join(dir, f)])
-const hits = walk(plugin).filter(f => /MIROMIRO_API_KEY/.test(readFileSync(f, 'utf8')))
+const banned = /MIROMIRO_API_KEY|YOUR_API_KEY|Authorization: Bearer|rest-fallback|environment variable/
+const hits = walk(plugin).filter(f => banned.test(readFileSync(f, 'utf8')))
 if (hits.length) {
-  console.error('plugin/ still mentions MIROMIRO_API_KEY in:\n' + hits.join('\n'))
+  console.error('plugin/ still handles an API key in:\n' + hits.join('\n'))
   process.exit(1)
 }
 console.log('plugin/ synced:', walk(plugin).map(f => f.slice(plugin.length + 1).replace(/\\/g, '/')).join(', '))

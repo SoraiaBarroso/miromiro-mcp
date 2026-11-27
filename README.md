@@ -2,6 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/miromiro-mcp)](https://www.npmjs.com/package/miromiro-mcp)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+[![SoraiaBarroso/miromiro-mcp MCP server](https://glama.ai/mcp/servers/SoraiaBarroso/miromiro-mcp/badges/score.svg)](https://glama.ai/mcp/servers/SoraiaBarroso/miromiro-mcp)
 
 MCP server for the [MiroMiro](https://miromiro.app/api) design-extraction API. Give your AI agent the real design of any live website - brand colors, fonts, design tokens, SVGs, images, Lottie animations, and paste-ready component code - so it builds from actual values instead of guessing from a screenshot.
 
